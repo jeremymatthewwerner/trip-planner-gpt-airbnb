@@ -477,6 +477,111 @@ async def create_itinerary(request: ItineraryRequest):
         logger.error(f"Error creating itinerary: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error creating itinerary: {str(e)}")
 
+@app.get("/airbnb/listing/{listing_id}/image")
+async def get_listing_image(listing_id: str):
+    """
+    Get a specific Airbnb listing with its image formatted for display in the GPT chat.
+    Returns markdown that can be used to display the image in the chat.
+    """
+    logger.info(f"Getting image for Airbnb listing {listing_id}")
+    
+    # Try to find the listing in our data
+    listing = None
+    
+    # First check if we can get it from RapidAPI
+    if RAPIDAPI_KEY:
+        try:
+            # Using ApiDojo's Airbnb API on RapidAPI to get listing details
+            url = f"https://airbnb13.p.rapidapi.com/get-listing/{listing_id}"
+            
+            headers = {
+                "X-RapidAPI-Key": RAPIDAPI_KEY,
+                "X-RapidAPI-Host": "airbnb13.p.rapidapi.com"
+            }
+            
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, headers=headers)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    # Extract the listing data
+                    item = data.get("listing", {})
+                    if item:
+                        # Get the image URL from the API response
+                        images = item.get("images", []) if isinstance(item.get("images"), list) else []
+                        image_url = ""
+                        if images and isinstance(images[0], dict):
+                            image_url = images[0].get("picture", "")
+                        elif images and isinstance(images[0], str):
+                            image_url = images[0]
+                        
+                        if image_url:
+                            listing = {
+                                "id": listing_id,
+                                "name": item.get("name", "Beautiful Airbnb Listing"),
+                                "image_url": image_url,
+                                "url": f"https://www.airbnb.com/rooms/{listing_id}"
+                            }
+        except Exception as e:
+            logger.error(f"Error fetching listing from RapidAPI: {str(e)}")
+            # Continue to check mock data
+    
+    # If not found via RapidAPI, check mock data
+    if not listing:
+        mock_listings = load_mock_data("airbnb_listings.json")
+        
+        # Find the listing with the given ID
+        for item in mock_listings:
+            if item.get("id") == listing_id:
+                listing = item
+                break
+    
+    if not listing:
+        raise HTTPException(status_code=404, detail=f"Listing with ID {listing_id} not found")
+    
+    # Get the image URL
+    image_url = listing.get("image_url", "")
+    if not image_url:
+        raise HTTPException(status_code=404, detail=f"No image found for listing {listing_id}")
+    
+    # Return the listing with image markdown
+    return {
+        "listing": listing,
+        "markdown": f"![{listing['name']}]({image_url})",
+        "image_url": image_url
+    }
+
+@app.post("/airbnb/listings/images")
+async def get_listings_images(request: AirbnbListingRequest):
+    """
+    Get multiple Airbnb listings with their images formatted for display in the GPT chat.
+    Returns markdown that can be used to display the images in the chat.
+    """
+    logger.info(f"Getting images for Airbnb listings in {request.location}")
+    
+    # Get listings based on the request
+    listings = await search_airbnb_listings(request)
+    
+    # Limit to top 3 listings to avoid overwhelming the chat
+    listings = listings[:3]
+    
+    # Format the response with markdown for each listing
+    formatted_listings = []
+    for listing in listings:
+        image_url = listing.get("image_url", "")
+        if image_url:
+            formatted_listings.append({
+                "listing": listing,
+                "markdown": f"![{listing['name']}]({image_url})",
+                "image_url": image_url
+            })
+    
+    return {
+        "listings": formatted_listings,
+        "count": len(formatted_listings)
+    }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000) 
