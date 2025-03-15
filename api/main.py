@@ -6,7 +6,7 @@ import httpx
 import os
 from dotenv import load_dotenv
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 from fastapi.responses import JSONResponse
 
@@ -36,8 +36,8 @@ if not RAPIDAPI_KEY:
 # Models
 class AirbnbListingRequest(BaseModel):
     location: str
-    check_in: str = Field(default_factory=lambda: "2025-03-20")
-    check_out: str = Field(default_factory=lambda: "2025-03-25")
+    check_in: str = Field(default_factory=lambda: (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d"))
+    check_out: str = Field(default_factory=lambda: (datetime.now() + timedelta(days=35)).strftime("%Y-%m-%d"))
     adults: int = Field(default_factory=lambda: 2)
     price_min: Optional[int] = None
     price_max: Optional[int] = None
@@ -115,35 +115,37 @@ async def root_head():
 async def search_airbnb_listings(request: AirbnbListingRequest):
     """
     Search for Airbnb listings based on location, dates, and other criteria.
-    Uses RapidAPI if API key is available, otherwise falls back to mock data.
+    Uses RapidAPI to fetch real Airbnb listings.
     """
     logger.info(f"Searching Airbnb listings for {request.location}")
     
-    try:
-        if not RAPIDAPI_KEY:
-            logger.warning("RAPIDAPI_KEY not set. Using mock data.")
-            return search_airbnb_mock(request)
-            
-        try:
-            listings = await search_airbnb_rapidapi(request)
-            if not listings:
-                logger.warning("No listings found from RapidAPI. Using mock data.")
-                return search_airbnb_mock(request)
-            logger.info(f"Successfully retrieved {len(listings)} listings from RapidAPI")
-            return listings
-        except Exception as api_error:
-            logger.error(f"RapidAPI search failed: {str(api_error)}")
-            logger.info("Falling back to mock data")
-            return search_airbnb_mock(request)
+    if not RAPIDAPI_KEY:
+        raise HTTPException(
+            status_code=503,
+            detail="Airbnb search service is not configured properly. Please try again later."
+        )
     
+    try:
+        listings = await search_airbnb_rapidapi(request)
+        if not listings:
+            raise HTTPException(
+                status_code=404,
+                detail="No listings found for your search criteria."
+            )
+        logger.info(f"Successfully retrieved {len(listings)} listings from RapidAPI")
+        return listings
     except Exception as e:
-        logger.error(f"Error searching Airbnb listings: {str(e)}")
-        # Always try to return mock data as a last resort
-        try:
-            return search_airbnb_mock(request)
-        except Exception as mock_error:
-            logger.error(f"Mock data fallback also failed: {str(mock_error)}")
-            raise HTTPException(status_code=500, detail="Failed to retrieve Airbnb listings")
+        error_message = str(e)
+        if "Date cannot be in the past" in error_message:
+            raise HTTPException(
+                status_code=400,
+                detail="Please select future dates for your stay. The dates provided are in the past."
+            )
+        logger.error(f"RapidAPI search failed: {error_message}")
+        raise HTTPException(
+            status_code=503,
+            detail=f"Error searching Airbnb listings: {error_message}"
+        )
 
 @app.post("/attractions/search", response_model=List[Attraction])
 async def search_attractions(request: AttractionRequest):
@@ -276,85 +278,83 @@ async def get_listing_image(listing_id: str):
     """
     logger.info(f"Getting image for Airbnb listing {listing_id}")
     
-    # Try to find the listing in our data
-    listing = None
+    if not RAPIDAPI_KEY:
+        raise HTTPException(
+            status_code=503,
+            detail="Airbnb image service is not configured properly. Please try again later."
+        )
     
-    # First check if we can get it from RapidAPI
-    if RAPIDAPI_KEY:
-        try:
-            # Using ApiDojo's Airbnb API on RapidAPI to get listing details
-            url = f"https://airbnb13.p.rapidapi.com/get-listing/{listing_id}"
+    try:
+        # Using ApiDojo's Airbnb API on RapidAPI to get listing details
+        url = f"https://airbnb13.p.rapidapi.com/get-listing/{listing_id}"
+        
+        headers = {
+            "X-RapidAPI-Key": RAPIDAPI_KEY,
+            "X-RapidAPI-Host": "airbnb13.p.rapidapi.com"
+        }
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=headers)
+            logger.info(f"RapidAPI response status: {response.status_code}")
             
-            headers = {
-                "X-RapidAPI-Key": RAPIDAPI_KEY,
-                "X-RapidAPI-Host": "airbnb13.p.rapidapi.com"
+            if response.status_code != 200:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f"Error fetching listing details: {response.text}"
+                )
+            
+            data = response.json()
+            
+            # Extract the listing data
+            item = data.get("listing", {})
+            if not item:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Listing with ID {listing_id} not found"
+                )
+            
+            # Get the image URL from the API response
+            images = item.get("images", []) if isinstance(item.get("images"), list) else []
+            image_url = ""
+            if images and isinstance(images[0], dict):
+                image_url = images[0].get("picture", "")
+                logger.info(f"Found image URL (dict): {image_url}")
+            elif images and isinstance(images[0], str):
+                image_url = images[0]
+                logger.info(f"Found image URL (str): {image_url}")
+            
+            if not image_url:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"No image found for listing {listing_id}"
+                )
+            
+            # Ensure the image URL is using HTTPS
+            if image_url.startswith("http:"):
+                image_url = "https:" + image_url[5:]
+            
+            listing = {
+                "id": listing_id,
+                "name": item.get("name", "Airbnb Listing"),
+                "image_url": image_url,
+                "url": f"https://www.airbnb.com/rooms/{listing_id}"
             }
             
-            async with httpx.AsyncClient() as client:
-                response = await client.get(url, headers=headers)
-                logger.info(f"RapidAPI response status: {response.status_code}")
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    
-                    # Extract the listing data
-                    item = data.get("listing", {})
-                    if item:
-                        # Get the image URL from the API response
-                        images = item.get("images", []) if isinstance(item.get("images"), list) else []
-                        image_url = ""
-                        if images and isinstance(images[0], dict):
-                            image_url = images[0].get("picture", "")
-                            logger.info(f"Found image URL (dict): {image_url}")
-                        elif images and isinstance(images[0], str):
-                            image_url = images[0]
-                            logger.info(f"Found image URL (str): {image_url}")
-                        
-                        if image_url:
-                            listing = {
-                                "id": listing_id,
-                                "name": item.get("name", "Beautiful Airbnb Listing"),
-                                "image_url": image_url,
-                                "url": f"https://www.airbnb.com/rooms/{listing_id}?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}&source_impression_id=p3_1709862991&guests=1"
-                            }
-        except Exception as e:
-            logger.error(f"Error fetching listing from RapidAPI: {str(e)}")
-            # Continue to check mock data
-    
-    # If not found via RapidAPI, check mock data
-    if not listing:
-        logger.info("Falling back to mock data for image")
-        mock_listings = load_mock_data("airbnb_listings.json")
-        
-        # Find the listing with the given ID
-        for item in mock_listings:
-            if item.get("id") == listing_id:
-                listing = item
-                logger.info(f"Found listing in mock data: {listing.get('name')}")
-                break
-    
-    if not listing:
-        logger.error(f"Listing with ID {listing_id} not found")
-        raise HTTPException(status_code=404, detail=f"Listing with ID {listing_id} not found")
-    
-    # Get the image URL
-    image_url = listing.get("image_url", "")
-    if not image_url:
-        logger.error(f"No image found for listing {listing_id}")
-        raise HTTPException(status_code=404, detail=f"No image found for listing {listing_id}")
-    
-    logger.info(f"Returning image URL: {image_url}")
-    
-    # Ensure the image URL is using HTTPS
-    if image_url.startswith("http:"):
-        image_url = "https:" + image_url[5:]
-    
-    # Return the listing with image markdown
-    return {
-        "listing": listing,
-        "markdown": f"![{listing['name']}]({image_url})",
-        "image_url": image_url
-    }
+            # Return the listing with image markdown
+            return {
+                "listing": listing,
+                "markdown": f"![{listing['name']}]({image_url})",
+                "image_url": image_url
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching listing from RapidAPI: {str(e)}")
+        raise HTTPException(
+            status_code=503,
+            detail=f"Error fetching listing details: {str(e)}"
+        )
 
 @app.post("/airbnb/listings/images")
 async def get_listings_images(request: AirbnbListingRequest):
@@ -417,9 +417,27 @@ async def test_image():
 async def search_airbnb_rapidapi(request: AirbnbListingRequest):
     """
     Search for Airbnb listings using RapidAPI.
-    Falls back to mock data if the API call fails.
     """
     url = "https://airbnb13.p.rapidapi.com/search-location"
+    
+    # Validate and adjust dates to ensure they're in the future
+    try:
+        check_in_date = datetime.strptime(request.check_in, "%Y-%m-%d")
+        check_out_date = datetime.strptime(request.check_out, "%Y-%m-%d")
+        today = datetime.now()
+        
+        # If dates are in the past, adjust to next year
+        if check_in_date < today:
+            check_in_date = check_in_date.replace(year=today.year + 1)
+            check_out_date = check_out_date.replace(year=today.year + 1)
+            request.check_in = check_in_date.strftime("%Y-%m-%d")
+            request.check_out = check_out_date.strftime("%Y-%m-%d")
+            logger.info(f"Adjusted dates to next year: {request.check_in} to {request.check_out}")
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid date format. Please use YYYY-MM-DD format: {str(e)}"
+        )
     
     # Map our room types to RapidAPI's room types
     room_type_map = {
