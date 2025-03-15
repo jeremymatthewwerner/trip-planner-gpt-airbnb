@@ -396,7 +396,7 @@ async def get_listings_images(request: AirbnbListingRequest):
         "count": len(formatted_listings)
     }
 
-@app.get("/airbnb/test-image")
+@app.get("/test-image")
 async def test_image():
     """
     Test endpoint to verify that image URLs are working correctly.
@@ -412,18 +412,6 @@ async def test_image():
         "markdown": f"![Test Image]({test_image_url})",
         "image_url": test_image_url,
         "message": "If you can see the image above, image display is working correctly."
-    }
-
-@app.get("/health")
-async def health_check():
-    """
-    Health check endpoint that returns basic service status.
-    This endpoint is used by monitoring services to keep the server active.
-    """
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "service": "trip-planner-api"
     }
 
 async def search_airbnb_rapidapi(request: AirbnbListingRequest):
