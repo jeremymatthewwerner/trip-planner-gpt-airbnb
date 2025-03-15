@@ -519,6 +519,7 @@ async def get_listing_image(listing_id: str):
             
             async with httpx.AsyncClient() as client:
                 response = await client.get(url, headers=headers)
+                logger.info(f"RapidAPI response status: {response.status_code}")
                 
                 if response.status_code == 200:
                     data = response.json()
@@ -531,8 +532,10 @@ async def get_listing_image(listing_id: str):
                         image_url = ""
                         if images and isinstance(images[0], dict):
                             image_url = images[0].get("picture", "")
+                            logger.info(f"Found image URL (dict): {image_url}")
                         elif images and isinstance(images[0], str):
                             image_url = images[0]
+                            logger.info(f"Found image URL (str): {image_url}")
                         
                         if image_url:
                             listing = {
@@ -547,21 +550,31 @@ async def get_listing_image(listing_id: str):
     
     # If not found via RapidAPI, check mock data
     if not listing:
+        logger.info("Falling back to mock data for image")
         mock_listings = load_mock_data("airbnb_listings.json")
         
         # Find the listing with the given ID
         for item in mock_listings:
             if item.get("id") == listing_id:
                 listing = item
+                logger.info(f"Found listing in mock data: {listing.get('name')}")
                 break
     
     if not listing:
+        logger.error(f"Listing with ID {listing_id} not found")
         raise HTTPException(status_code=404, detail=f"Listing with ID {listing_id} not found")
     
     # Get the image URL
     image_url = listing.get("image_url", "")
     if not image_url:
+        logger.error(f"No image found for listing {listing_id}")
         raise HTTPException(status_code=404, detail=f"No image found for listing {listing_id}")
+    
+    logger.info(f"Returning image URL: {image_url}")
+    
+    # Ensure the image URL is using HTTPS
+    if image_url.startswith("http:"):
+        image_url = "https:" + image_url[5:]
     
     # Return the listing with image markdown
     return {
@@ -589,15 +602,39 @@ async def get_listings_images(request: AirbnbListingRequest):
     for listing in listings:
         image_url = listing.get("image_url", "")
         if image_url:
+            # Ensure the image URL is using HTTPS
+            if image_url.startswith("http:"):
+                image_url = "https:" + image_url[5:]
+                
+            logger.info(f"Adding image for listing {listing.get('id')}: {image_url}")
             formatted_listings.append({
                 "listing": listing,
                 "markdown": f"![{listing['name']}]({image_url})",
                 "image_url": image_url
             })
     
+    logger.info(f"Returning {len(formatted_listings)} listing images")
     return {
         "listings": formatted_listings,
         "count": len(formatted_listings)
+    }
+
+@app.get("/airbnb/test-image")
+async def test_image():
+    """
+    Test endpoint to verify that image URLs are working correctly.
+    Returns a test image that should display in the GPT chat.
+    """
+    logger.info("Testing image display in GPT chat")
+    
+    # Use a reliable image URL from Unsplash
+    test_image_url = "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop"
+    
+    # Return the test image with markdown
+    return {
+        "markdown": f"![Test Image]({test_image_url})",
+        "image_url": test_image_url,
+        "message": "If you can see the image above, image display is working correctly."
     }
 
 if __name__ == "__main__":
