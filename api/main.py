@@ -120,33 +120,37 @@ async def search_airbnb_listings(request: AirbnbListingRequest):
     logger.info(f"Searching Airbnb listings for {request.location}")
     
     try:
-        # Try to use RapidAPI if key is available
-        if RAPIDAPI_KEY:
-            return await search_airbnb_rapidapi(request)
+        # Try to use RapidAPI if key is available and not a placeholder
+        if RAPIDAPI_KEY and RAPIDAPI_KEY != "your_valid_rapidapi_key_here":
+            try:
+                return await search_airbnb_rapidapi(request)
+            except Exception as api_error:
+                logger.error(f"RapidAPI search failed: {str(api_error)}")
+                logger.info("Falling back to mock data.")
+                return search_airbnb_mock(request)
         else:
-            logger.info("No RapidAPI key found. Using mock data.")
+            logger.info("No valid RapidAPI key found. Using mock data.")
             return search_airbnb_mock(request)
     
     except Exception as e:
         logger.error(f"Error searching Airbnb listings: {str(e)}")
-        # Fall back to mock data if RapidAPI fails
-        if str(e).startswith("RapidAPI error"):
-            logger.info("RapidAPI failed. Falling back to mock data.")
+        # Always try to return mock data as a last resort
+        try:
             return search_airbnb_mock(request)
-        raise HTTPException(status_code=500, detail=f"Error searching Airbnb listings: {str(e)}")
+        except Exception as mock_error:
+            logger.error(f"Mock data fallback also failed: {str(mock_error)}")
+            raise HTTPException(status_code=500, detail="Failed to retrieve Airbnb listings")
 
 async def search_airbnb_rapidapi(request: AirbnbListingRequest):
     """
     Search for Airbnb listings using RapidAPI.
+    Falls back to mock data if the API call fails.
     """
-    logger.info(f"Using RapidAPI to search for Airbnb listings in {request.location}")
-    
-    # Using ApiDojo's Airbnb API on RapidAPI
     url = "https://airbnb13.p.rapidapi.com/search-location"
     
-    # Convert room_type to the format expected by the API
+    # Map our room types to RapidAPI's room types
     room_type_map = {
-        "entire_home": "entire_home_apt",
+        "entire_home": "entire_home",
         "private_room": "private_room",
         "shared_room": "shared_room",
         "hotel_room": "hotel_room"
@@ -179,11 +183,25 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
     }
     
     try:
+        # Only attempt the API call if we have a RapidAPI key
+        if not RAPIDAPI_KEY or RAPIDAPI_KEY == "your_valid_rapidapi_key_here":
+            logger.warning("No valid RAPIDAPI_KEY provided. Using mock data.")
+            raise Exception("No valid RAPIDAPI_KEY provided")
+            
         async with httpx.AsyncClient() as client:
             response = await client.get(url, params=query_params, headers=headers)
             
             if response.status_code != 200:
-                raise Exception(f"RapidAPI error: {response.status_code} - {response.text}")
+                error_message = f"RapidAPI error: {response.status_code}"
+                try:
+                    error_data = response.json()
+                    if isinstance(error_data, dict) and "message" in error_data:
+                        error_message += f" - {error_data['message']}"
+                except:
+                    error_message += f" - {response.text}"
+                
+                logger.error(error_message)
+                raise Exception(error_message)
             
             data = response.json()
             
