@@ -178,41 +178,69 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
         "X-RapidAPI-Host": "airbnb13.p.rapidapi.com"
     }
     
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url, params=query_params, headers=headers)
-        
-        if response.status_code != 200:
-            raise Exception(f"RapidAPI error: {response.status_code} - {response.text}")
-        
-        data = response.json()
-        
-        # Transform the API response to match our data model
-        listings = []
-        for item in data.get("results", []):
-            try:
-                listing = {
-                    "id": str(item.get("id", "")),
-                    "name": item.get("name", ""),
-                    "url": f"https://www.airbnb.com/rooms/{item.get('id', '')}",
-                    "image_url": item.get("images", [{}])[0].get("picture", "") if item.get("images") else "",
-                    "price_per_night": float(item.get("price", {}).get("rate", 0)),
-                    "total_price": float(item.get("price", {}).get("total", 0)),
-                    "rating": float(item.get("rating", 0)),
-                    "reviews_count": int(item.get("reviewsCount", 0)),
-                    "room_type": item.get("type", ""),
-                    "beds": int(item.get("beds", 1)),
-                    "bedrooms": int(item.get("bedrooms", 1)),
-                    "bathrooms": float(item.get("bathrooms", 1.0)),
-                    "amenities": item.get("previewAmenities", []),
-                    "location": request.location,
-                    "superhost": bool(item.get("isSuperhost", False))
-                }
-                listings.append(listing)
-            except Exception as e:
-                logger.error(f"Error processing listing: {str(e)}")
-                continue
-        
-        return listings
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, params=query_params, headers=headers)
+            
+            if response.status_code != 200:
+                raise Exception(f"RapidAPI error: {response.status_code} - {response.text}")
+            
+            data = response.json()
+            
+            # Transform the API response to match our data model
+            listings = []
+            for item in data.get("results", []):
+                try:
+                    # Make sure item is a dictionary before trying to access its properties
+                    if not isinstance(item, dict):
+                        logger.error(f"Expected dictionary but got {type(item)}: {item}")
+                        continue
+                        
+                    # Safely extract values with proper type checking
+                    item_id = str(item.get("id", "")) if item.get("id") is not None else ""
+                    name = item.get("name", "") if isinstance(item.get("name"), str) else ""
+                    
+                    # Safely handle nested structures
+                    images = item.get("images", []) if isinstance(item.get("images"), list) else []
+                    image_url = ""
+                    if images and isinstance(images[0], dict):
+                        image_url = images[0].get("picture", "")
+                    
+                    # Safely handle price information
+                    price = item.get("price", {}) if isinstance(item.get("price"), dict) else {}
+                    price_per_night = 0.0
+                    total_price = 0.0
+                    if isinstance(price, dict):
+                        price_per_night = float(price.get("rate", 0)) if price.get("rate") is not None else 0.0
+                        total_price = float(price.get("total", 0)) if price.get("total") is not None else 0.0
+                    
+                    listing = {
+                        "id": item_id,
+                        "name": name,
+                        "url": f"https://www.airbnb.com/rooms/{item_id}" if item_id else "",
+                        "image_url": image_url,
+                        "price_per_night": price_per_night,
+                        "total_price": total_price,
+                        "rating": float(item.get("rating", 0)) if item.get("rating") is not None else 0.0,
+                        "reviews_count": int(item.get("reviewsCount", 0)) if item.get("reviewsCount") is not None else 0,
+                        "room_type": item.get("type", "") if isinstance(item.get("type"), str) else "",
+                        "beds": int(item.get("beds", 1)) if item.get("beds") is not None else 1,
+                        "bedrooms": int(item.get("bedrooms", 1)) if item.get("bedrooms") is not None else 1,
+                        "bathrooms": float(item.get("bathrooms", 1.0)) if item.get("bathrooms") is not None else 1.0,
+                        "amenities": item.get("previewAmenities", []) if isinstance(item.get("previewAmenities"), list) else [],
+                        "location": request.location,
+                        "superhost": bool(item.get("isSuperhost", False)) if item.get("isSuperhost") is not None else False
+                    }
+                    listings.append(listing)
+                except Exception as e:
+                    logger.error(f"Error processing listing: {str(e)}")
+                    continue
+            
+            return listings
+    except Exception as e:
+        logger.error(f"Error in RapidAPI request: {str(e)}")
+        # Fall back to mock data
+        return search_airbnb_mock(request)
 
 def search_airbnb_mock(request: AirbnbListingRequest):
     """
