@@ -414,6 +414,18 @@ async def test_image():
         "message": "If you can see the image above, image display is working correctly."
     }
 
+@app.get("/health")
+async def health_check():
+    """
+    Health check endpoint that returns basic service status.
+    This endpoint is used by monitoring services to keep the server active.
+    """
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat(),
+        "service": "trip-planner-api"
+    }
+
 async def search_airbnb_rapidapi(request: AirbnbListingRequest):
     """
     Search for Airbnb listings using RapidAPI.
