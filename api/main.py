@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 import logging
 from datetime import datetime
 import json
+from fastapi.responses import JSONResponse
 
 # Load environment variables
 load_dotenv()
@@ -105,6 +106,10 @@ def load_mock_data(filename):
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Trip Planner API"}
+
+@app.head("/")
+async def root_head():
+    return JSONResponse(content={}, status_code=200)
 
 @app.post("/airbnb/search", response_model=List[AirbnbListing])
 async def search_airbnb_listings(request: AirbnbListingRequest):
