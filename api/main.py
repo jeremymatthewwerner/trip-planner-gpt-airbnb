@@ -426,13 +426,20 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
         check_out_date = datetime.strptime(request.check_out, "%Y-%m-%d")
         today = datetime.now()
         
-        # If dates are in the past, adjust to next year
+        # Calculate how many years to add to make the dates valid
+        years_to_add = 0
         if check_in_date < today:
-            check_in_date = check_in_date.replace(year=today.year + 1)
-            check_out_date = check_out_date.replace(year=today.year + 1)
+            # Calculate years needed to make the date future
+            years_to_add = today.year - check_in_date.year
+            if check_in_date.replace(year=today.year) < today:
+                years_to_add += 1
+            
+            # Adjust both dates by the same number of years
+            check_in_date = check_in_date.replace(year=check_in_date.year + years_to_add)
+            check_out_date = check_out_date.replace(year=check_out_date.year + years_to_add)
             request.check_in = check_in_date.strftime("%Y-%m-%d")
             request.check_out = check_out_date.strftime("%Y-%m-%d")
-            logger.info(f"Adjusted dates to next year: {request.check_in} to {request.check_out}")
+            logger.info(f"Adjusted dates {years_to_add} years forward to: {request.check_in} to {request.check_out}")
     except ValueError as e:
         raise HTTPException(
             status_code=400,

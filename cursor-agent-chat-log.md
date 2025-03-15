@@ -15648,7 +15648,322 @@ Looking at the server logs, I can see exactly why we're getting mock data:
 
 ```
 INFO:__main__:Searching Airbnb listings for New York
-INFO:httpx:HTTP Request: GET https://airbnb13.p.rapidapi.com/search-location?location=New%
+INFO:httpx:HTTP Request: GET https://airbnb13.p.rapidapi.com/search-location?location=New%20York&checkin=2024-08-02&checkout=2024-08-05&adults=2&children=0&infants=0&pets=0&page=1&currency=USD "HTTP/1.1 200 OK"
+ERROR:__main__:RapidAPI returned error: Date cannot be in the past
+ERROR:__main__:Error fetching listings from RapidAPI: Date cannot be in the past
+ERROR:__main__:RapidAPI search failed: Date cannot be in the past
+INFO:__main__:Falling back to mock data
+```
+
+The issue is that we're using dates in the past (August 2024) and the RapidAPI service is rejecting these dates. Instead of falling back to mock data, we should indeed return an error to the user.
+
+Let me modify the code to:
+1. Remove the mock data fallback
+2. Return proper error messages to the user
+
+---
+
+```diff
+      """
+      Search for Airbnb listings based on location, dates, and other criteria.
+-     Uses RapidAPI if API key is available, otherwise falls back to mock data.
++     Uses RapidAPI to fetch real Airbnb listings.
+      """
+      logger.info(f"Searching Airbnb listings for {request.location}")
+      
+-     try:
+      if not RAPIDAPI_KEY:
+-             logger.warning("RAPIDAPI_KEY not set. Using mock data.")
+-             return search_airbnb_mock(request)
++         raise HTTPException(
++             status_code=503,
++             detail="Airbnb search service is not configured properly. Please try again later."
++         )
+      
+      try:
+          listings = await search_airbnb_rapidapi(request)
+          if not listings:
+-                 logger.warning("No listings found from RapidAPI. Using mock data.")
+-                 return search_airbnb_mock(request)
++             raise HTTPException(
++                 status_code=404,
++                 detail="No listings found for your search criteria."
++             )
+          logger.info(f"Successfully retrieved {len(listings)} listings from RapidAPI")
+          return listings
+-         except Exception as api_error:
+-             logger.error(f"RapidAPI search failed: {str(api_error)}")
+-             logger.info("Falling back to mock data")
+-             return search_airbnb_mock(request)
+-     
+      except Exception as e:
+-         logger.error(f"Error searching Airbnb listings: {str(e)}")
+-         # Always try to return mock data as a last resort
+-         try:
+-             return search_airbnb_mock(request)
+-         except Exception as mock_error:
+-             logger.error(f"Mock data fallback also failed: {str(mock_error)}")
+-             raise HTTPException(status_code=500, detail="Failed to retrieve Airbnb listings")
++         error_message = str(e)
++         if "Date cannot be in the past" in error_message:
++             raise HTTPException(
++                 status_code=400,
++                 detail="Please select future dates for your stay. The dates provided are in the past."
++             )
++         logger.error(f"RapidAPI search failed: {error_message}")
++         raise HTTPException(
++             status_code=503,
++             detail=f"Error searching Airbnb listings: {error_message}"
++         )
+  
+  @app.post("/attractions/search", response_model=List[Attraction])
+```
+
+---
+
+Now let's update the image endpoint to also remove mock data fallback:
+
+---
+
+```diff
+      logger.info(f"Getting image for Airbnb listing {listing_id}")
+      
+-     # Try to find the listing in our data
+-     listing = None
+-     
+-     # First check if we can get it from RapidAPI
+-     if RAPIDAPI_KEY:
++     if not RAPIDAPI_KEY:
++         raise HTTPException(
++             status_code=503,
++             detail="Airbnb image service is not configured properly. Please try again later."
++         )
++     
+      try:
+          # Using ApiDojo's Airbnb API on RapidAPI to get listing details
+              logger.info(f"RapidAPI response status: {response.status_code}")
+              
+-                 if response.status_code == 200:
++             if response.status_code != 200:
++                 raise HTTPException(
++                     status_code=response.status_code,
++                     detail=f"Error fetching listing details: {response.text}"
++                 )
++             
+              data = response.json()
+              
+              # Extract the listing data
+              item = data.get("listing", {})
+-                     if item:
++             if not item:
++                 raise HTTPException(
++                     status_code=404,
++                     detail=f"Listing with ID {listing_id} not found"
++                 )
++             
+              # Get the image URL from the API response
+              images = item.get("images", []) if isinstance(item.get("images"), list) else []
+                  logger.info(f"Found image URL (str): {image_url}")
+              
+-                         if image_url:
+-                             listing = {
+-                                 "id": listing_id,
+-                                 "name": item.get("name", "Beautiful Airbnb Listing"),
+-                                 "image_url": image_url,
+-                                 "url": f"https://www.airbnb.com/rooms/{listing_id}?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}&source_impression_id=p3_1709862991&guests=1"
+-                             }
+-         except Exception as e:
+-             logger.error(f"Error fetching listing from RapidAPI: {str(e)}")
+-             # Continue to check mock data
+-     
+-     # If not found via RapidAPI, check mock data
+-     if not listing:
+-         logger.info("Falling back to mock data for image")
+-         mock_listings = load_mock_data("airbnb_listings.json")
+-         
+-         # Find the listing with the given ID
+-         for item in mock_listings:
+-             if item.get("id") == listing_id:
+-                 listing = item
+-                 logger.info(f"Found listing in mock data: {listing.get('name')}")
+-                 break
+-     
+-     if not listing:
+-         logger.error(f"Listing with ID {listing_id} not found")
+-         raise HTTPException(status_code=404, detail=f"Listing with ID {listing_id} not found")
+-     
+-     # Get the image URL
+-     image_url = listing.get("image_url", "")
+              if not image_url:
+-         logger.error(f"No image found for listing {listing_id}")
+-         raise HTTPException(status_code=404, detail=f"No image found for listing {listing_id}")
+-     
+-     logger.info(f"Returning image URL: {image_url}")
++                 raise HTTPException(
++                     status_code=404,
++                     detail=f"No image found for listing {listing_id}"
++                 )
+              
+              # Ensure the image URL is using HTTPS
+              if image_url.startswith("http:"):
+                  image_url = "https:" + image_url[5:]
+              
++             listing = {
++                 "id": listing_id,
++                 "name": item.get("name", "Airbnb Listing"),
++                 "image_url": image_url,
++                 "url": f"https://www.airbnb.com/rooms/{listing_id}"
++             }
++             
+              # Return the listing with image markdown
+              return {
+                  "image_url": image_url
+              }
++             
++     except HTTPException:
++         raise
++     except Exception as e:
++         logger.error(f"Error fetching listing from RapidAPI: {str(e)}")
++         raise HTTPException(
++             status_code=503,
++             detail=f"Error fetching listing details: {str(e)}"
++         )
+  
+  @app.post("/airbnb/listings/images")
+```
+
+---
+
+Let me update the listings images endpoint as well:
+
+---
+
+_**User**_
+
+I think I know what's up when I say I'd like to go first week of August something is assuming 2024 it should never do that it should always assume the current year if that would have been in the past 
+
+---
+
+_**Assistant**_
+
+Cancelled
+
+---
+
+
+
+---
+
+
+
+You're absolutely right! The issue is that when dates are provided without a year, we should intelligently handle them by:
+1. If the date would be in the past for the current year, use next year
+2. If the date would be in the future for the current year, use current year
+
+Let me update the code to handle this:
+
+---
+
+```diff
+      """
+      Search for Airbnb listings using RapidAPI.
+-     Falls back to mock data if the API call fails.
+      """
+      url = "https://airbnb13.p.rapidapi.com/search-location"
+      
++     # Validate and adjust dates to ensure they're in the future
++     try:
++         check_in_date = datetime.strptime(request.check_in, "%Y-%m-%d")
++         check_out_date = datetime.strptime(request.check_out, "%Y-%m-%d")
++         today = datetime.now()
++         
++         # If dates are in the past, adjust to next year
++         if check_in_date < today:
++             check_in_date = check_in_date.replace(year=today.year + 1)
++             check_out_date = check_out_date.replace(year=today.year + 1)
++             request.check_in = check_in_date.strftime("%Y-%m-%d")
++             request.check_out = check_out_date.strftime("%Y-%m-%d")
++             logger.info(f"Adjusted dates to next year: {request.check_in} to {request.check_out}")
++     except ValueError as e:
++         raise HTTPException(
++             status_code=400,
++             detail=f"Invalid date format. Please use YYYY-MM-DD format: {str(e)}"
++         )
++     
+      # Map our room types to RapidAPI's room types
+      room_type_map = {
+```
+
+---
+
+Let me also update the default dates in the model to use dynamic dates:
+
+---
+
+```diff
+  from dotenv import load_dotenv
+  import logging
+- from datetime import datetime
++ from datetime import datetime, timedelta
+  import json
+  from fastapi.responses import JSONResponse
+  class AirbnbListingRequest(BaseModel):
+      location: str
+-     check_in: str = Field(default_factory=lambda: "2025-03-20")
+-     check_out: str = Field(default_factory=lambda: "2025-03-25")
++     check_in: str = Field(default_factory=lambda: (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d"))
++     check_out: str = Field(default_factory=lambda: (datetime.now() + timedelta(days=35)).strftime("%Y-%m-%d"))
+      adults: int = Field(default_factory=lambda: 2)
+      price_min: Optional[int] = None
+```
+
+---
+
+Let me follow our procedure to update the chat log and push these changes:
+
+---
+
+```bash
+python redact_and_copy.py && git add cursor-agent-chat-log.md api/main.py && git commit -m "Add smart date handling to automatically adjust to future dates" && git push origin main
+```
+
+```
+(venv) jer@MacBookPro trip-planner-gpt-airbnb % python redact_and_copy.py && git add cursor-agent-chat-log.m
+d api/main.py && git commit -m "Add smart date handling to automatically adjust to future dates" && git push
+ origin main                                    python redact_and_copy.py && git add cursor-agent-chat-log.m
+d api/main.py && git commit -m "Add smart date handling to automatically adjust to future dates" && git push
+ origin main
+Successfully copied and redacted file to cursor-agent-chat-log.md
+[main a6fb8fe] Add smart date handling to automatically adjust to future dates
+ 2 files changed, 482 insertions(+), 1012 deletions(-)
+Enumerating objects: 9, done.
+Counting objects: 100% (9/9), done.
+Delta compression using up to 10 threads
+Compressing objects: 100% (5/5), done.
+Writing objects: 100% (5/5), 4.09 KiB | 1.36 MiB/s, done.
+Total 5 (delta 3), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (3/3), completed with 3 local objects.
+To https://github.com/jeremymatthewwerner/trip-planner-gpt-airbnb.git
+   0360a54..a6fb8fe  main -> main
+(venv) jer@MacBookPro trip-planner-gpt-airbnb %
+```
+
+---
+
+I've made two important changes to fix the date handling:
+
+1. Added smart date validation in the `search_airbnb_rapidapi` function that:
+   - Checks if the provided dates would be in the past
+   - If they are, automatically adjusts them to the same dates next year
+   - Logs when this adjustment happens for transparency
+
+2. Updated the default dates in the `A
+
+---
+
+_**User**_
+
+Yes, and in fact, if the date is in a previous year entirely, use the first one that is in the future, whether that's this year or next. Thanks. 
 
 ---
 
