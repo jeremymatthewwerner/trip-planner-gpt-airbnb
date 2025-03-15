@@ -20,6 +20,10 @@ This project consists of:
    - Instructions for the GPT
    - OpenAPI specification for connecting to the API
 
+3. **Automation Tools**: Scripts to automate the GPT Builder interface:
+   - Playwright script to update the GPT configuration programmatically
+   - Handles updating OpenAPI schema and GPT settings
+
 ## Features
 
 - **Personalized Trip Planning**: Create custom itineraries based on user preferences and travel dates
@@ -194,6 +198,61 @@ The API will be available at http://localhost:8000
    git commit -m "Update API URL"
    git push
    ```
+
+## Automating GPT Updates
+
+This project includes a Playwright automation script to update your GPT configuration programmatically, avoiding the need to manually update through the web interface.
+
+### Setup Automation
+
+1. **Navigate to the automation directory**:
+   ```
+   cd automation
+   ```
+
+2. **Install dependencies**:
+   ```
+   npm install
+   ```
+
+3. **Create a .env file**:
+   ```
+   cp .env.example .env
+   ```
+
+4. **Edit the .env file** with your OpenAI credentials and GPT information:
+   ```
+   OPENAI_EMAIL=your_email@example.com
+   OPENAI_PASSWORD=your_password
+   GPT_ID=g-your-gpt-id
+   GPT_NAME="Your GPT Name"
+   OPENAPI_SCHEMA_PATH="../gpt_config/openapi.yaml"
+   CONFIG_JSON_PATH="../gpt_config/config.json"
+   ```
+
+### Running the Automation
+
+Run the script to update your GPT:
+
+```
+npm run update
+```
+
+The script will:
+- Log in to your OpenAI account
+- Navigate to your GPT in the GPT Builder
+- Update the OpenAPI schema
+- Optionally update the GPT configuration (name, description, instructions)
+- Save the changes
+
+### Options
+
+- `--headless=false` (default): Run with a visible browser to monitor progress
+- `--wait-for-captcha=true` (default): Pause for manual CAPTCHA solving if needed
+- `--schema=path/to/schema.yaml`: Specify a custom path to the OpenAPI schema
+- `--config=path/to/config.json`: Specify a custom path to the GPT configuration
+
+For more details, see the [automation README](automation/README.md).
 
 ## Creating the Custom GPT
 
