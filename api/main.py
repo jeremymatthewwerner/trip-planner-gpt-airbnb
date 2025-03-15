@@ -17,6 +17,151 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Create mock data on startup
+def create_mock_data():
+    """
+    Create mock data files on startup to ensure they're always available.
+    """
+    logger.info("Creating mock data on startup")
+    
+    try:
+        import os
+        
+        # Get the base directory
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        logger.info(f"Base directory: {base_dir}")
+        
+        # Create the mock data directory if it doesn't exist
+        mock_data_dir = os.path.join(base_dir, "api", "mock_data")
+        os.makedirs(mock_data_dir, exist_ok=True)
+        logger.info(f"Created mock data directory: {mock_data_dir}")
+        
+        # Create the airbnb_listings.json file if it doesn't exist
+        airbnb_listings_path = os.path.join(mock_data_dir, "airbnb_listings.json")
+        if not os.path.exists(airbnb_listings_path):
+            logger.info(f"Creating airbnb_listings.json at: {airbnb_listings_path}")
+            
+            # Create sample data
+            mock_listings = [
+                {
+                    "id": "12345",
+                    "name": "Luxury Beachfront Villa",
+                    "url": "https://www.airbnb.com/rooms/12345?adults=2&check_in=2023-12-15&check_out=2023-12-20",
+                    "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
+                    "price_per_night": 250.0,
+                    "total_price": 1750.0,
+                    "rating": 4.9,
+                    "reviews_count": 120,
+                    "room_type": "entire_home",
+                    "beds": 3,
+                    "bedrooms": 2,
+                    "bathrooms": 2.5,
+                    "amenities": ["Pool", "Wifi", "Kitchen", "Air conditioning"],
+                    "location": "Paris, France",
+                    "superhost": True
+                },
+                {
+                    "id": "67890",
+                    "name": "Cozy Downtown Apartment",
+                    "url": "https://www.airbnb.com/rooms/67890?adults=2&check_in=2023-12-15&check_out=2023-12-20",
+                    "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
+                    "price_per_night": 120.0,
+                    "total_price": 840.0,
+                    "rating": 4.7,
+                    "reviews_count": 85,
+                    "room_type": "entire_home",
+                    "beds": 1,
+                    "bedrooms": 1,
+                    "bathrooms": 1.0,
+                    "amenities": ["Wifi", "Kitchen", "Washer"],
+                    "location": "Paris, France",
+                    "superhost": False
+                },
+                {
+                    "id": "24680",
+                    "name": "Mountain Retreat Cabin",
+                    "url": "https://www.airbnb.com/rooms/24680?adults=2&check_in=2023-12-15&check_out=2023-12-20",
+                    "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
+                    "price_per_night": 180.0,
+                    "total_price": 1260.0,
+                    "rating": 4.8,
+                    "reviews_count": 95,
+                    "room_type": "entire_home",
+                    "beds": 2,
+                    "bedrooms": 2,
+                    "bathrooms": 1.5,
+                    "amenities": ["Fireplace", "Hot tub", "Wifi", "Kitchen"],
+                    "location": "Paris, France",
+                    "superhost": True
+                }
+            ]
+            
+            # Write the data to the file
+            with open(airbnb_listings_path, "w") as f:
+                json.dump(mock_listings, f)
+            
+            logger.info(f"Successfully created airbnb_listings.json with {len(mock_listings)} listings")
+        else:
+            logger.info(f"airbnb_listings.json already exists at: {airbnb_listings_path}")
+        
+        # Create the attractions.json file if it doesn't exist
+        attractions_path = os.path.join(mock_data_dir, "attractions.json")
+        if not os.path.exists(attractions_path):
+            logger.info(f"Creating attractions.json at: {attractions_path}")
+            
+            # Create sample data
+            mock_attractions = [
+                {
+                    "name": "Eiffel Tower",
+                    "description": "Iconic iron tower with stunning views of Paris.",
+                    "category": "landmarks",
+                    "price_level": "medium",
+                    "rating": 4.7,
+                    "reviews_count": 1500,
+                    "url": "https://www.toureiffel.paris/en",
+                    "image_url": "https://images.unsplash.com/photo-1543349689-9a4d426bee8e?q=80&w=1000&auto=format&fit=crop",
+                    "location": "Paris, France"
+                },
+                {
+                    "name": "Louvre Museum",
+                    "description": "World's largest art museum and home to the Mona Lisa.",
+                    "category": "museums",
+                    "price_level": "medium",
+                    "rating": 4.8,
+                    "reviews_count": 1200,
+                    "url": "https://www.louvre.fr/en",
+                    "image_url": "https://images.unsplash.com/photo-1565099824688-e93eb20fe622?q=80&w=1000&auto=format&fit=crop",
+                    "location": "Paris, France"
+                },
+                {
+                    "name": "Seine River Cruise",
+                    "description": "Relaxing boat tour along the Seine River with views of Paris landmarks.",
+                    "category": "tours",
+                    "price_level": "medium",
+                    "rating": 4.6,
+                    "reviews_count": 950,
+                    "url": "https://www.bateauxparisiens.com/en.html",
+                    "image_url": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?q=80&w=1000&auto=format&fit=crop",
+                    "location": "Paris, France"
+                }
+            ]
+            
+            # Write the data to the file
+            with open(attractions_path, "w") as f:
+                json.dump(mock_attractions, f)
+            
+            logger.info(f"Successfully created attractions.json with {len(mock_attractions)} attractions")
+        else:
+            logger.info(f"attractions.json already exists at: {attractions_path}")
+        
+        return True
+    except Exception as e:
+        logger.error(f"Error creating mock data: {str(e)}")
+        return False
+
+# Create mock data on startup
+create_mock_data()
+
 app = FastAPI(title="Trip Planner API")
 
 # Add CORS middleware
