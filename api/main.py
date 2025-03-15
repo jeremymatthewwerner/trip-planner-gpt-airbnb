@@ -94,12 +94,24 @@ class Itinerary(BaseModel):
 # Mock data for development (in a real app, this would come from actual API calls)
 def load_mock_data(filename):
     try:
-        with open(f"api/mock_data/{filename}", "r") as f:
-            return json.load(f)
-    except FileNotFoundError:
+        # Use absolute path to find the mock data
+        import os
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        mock_data_path = os.path.join(base_dir, "api", "mock_data", filename)
+        logger.info(f"Loading mock data from: {mock_data_path}")
+        
+        with open(mock_data_path, "r") as f:
+            data = json.load(f)
+            logger.info(f"Successfully loaded mock data: {len(data)} items")
+            return data
+    except FileNotFoundError as e:
+        logger.error(f"Mock data file not found: {str(e)}")
         # Create directory if it doesn't exist
-        os.makedirs("api/mock_data", exist_ok=True)
+        os.makedirs(os.path.join(base_dir, "api", "mock_data"), exist_ok=True)
         # Return empty data
+        return []
+    except Exception as e:
+        logger.error(f"Error loading mock data: {str(e)}")
         return []
 
 # Routes
@@ -291,15 +303,17 @@ def search_airbnb_mock(request: AirbnbListingRequest):
     
     # Load mock data
     mock_listings = load_mock_data("airbnb_listings.json")
+    logger.info(f"Loaded {len(mock_listings)} mock listings")
     
     # If mock data is empty, create some sample data
     if not mock_listings:
+        logger.info("No mock listings found, creating sample data")
         mock_listings = [
             {
                 "id": "12345",
                 "name": "Luxury Beachfront Villa",
                 "url": f"https://www.airbnb.com/rooms/12345?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
-                "image_url": "https://example.com/image1.jpg",
+                "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
                 "price_per_night": 250.0,
                 "total_price": 1750.0,
                 "rating": 4.9,
@@ -316,7 +330,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
                 "id": "67890",
                 "name": "Cozy Downtown Apartment",
                 "url": f"https://www.airbnb.com/rooms/67890?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
-                "image_url": "https://example.com/image2.jpg",
+                "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
                 "price_per_night": 120.0,
                 "total_price": 840.0,
                 "rating": 4.7,
@@ -325,35 +339,46 @@ def search_airbnb_mock(request: AirbnbListingRequest):
                 "beds": 1,
                 "bedrooms": 1,
                 "bathrooms": 1.0,
-                "amenities": ["Wifi", "Kitchen", "Air conditioning"],
+                "amenities": ["Wifi", "Kitchen", "Washer"],
                 "location": request.location,
                 "superhost": False
             },
             {
                 "id": "24680",
-                "name": "Private Room in Historic Home",
+                "name": "Mountain Retreat Cabin",
                 "url": f"https://www.airbnb.com/rooms/24680?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
-                "image_url": "https://example.com/image3.jpg",
-                "price_per_night": 75.0,
-                "total_price": 525.0,
+                "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
+                "price_per_night": 180.0,
+                "total_price": 1260.0,
                 "rating": 4.8,
-                "reviews_count": 65,
-                "room_type": "private_room",
-                "beds": 1,
-                "bedrooms": 1,
-                "bathrooms": 1.0,
-                "amenities": ["Wifi", "Shared kitchen", "Garden"],
+                "reviews_count": 95,
+                "room_type": "entire_home",
+                "beds": 2,
+                "bedrooms": 2,
+                "bathrooms": 1.5,
+                "amenities": ["Fireplace", "Hot tub", "Wifi", "Kitchen"],
                 "location": request.location,
                 "superhost": True
             }
         ]
         
         # Save mock data for future use
-        os.makedirs("api/mock_data", exist_ok=True)
-        with open("api/mock_data/airbnb_listings.json", "w") as f:
-            json.dump(mock_listings, f)
+        try:
+            import os
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            mock_data_dir = os.path.join(base_dir, "api", "mock_data")
+            os.makedirs(mock_data_dir, exist_ok=True)
+            mock_data_path = os.path.join(mock_data_dir, "airbnb_listings.json")
+            logger.info(f"Saving sample mock data to: {mock_data_path}")
+            
+            with open(mock_data_path, "w") as f:
+                json.dump(mock_listings, f)
+            logger.info("Successfully saved sample mock data")
+        except Exception as e:
+            logger.error(f"Error saving mock data: {str(e)}")
     else:
         # Update URLs in existing mock data to include query parameters
+        logger.info("Updating URLs in existing mock data")
         for listing in mock_listings:
             listing_id = listing.get("id", "")
             if listing_id:
@@ -362,14 +387,18 @@ def search_airbnb_mock(request: AirbnbListingRequest):
     
     # Filter by room type if specified
     if request.room_type:
+        logger.info(f"Filtering by room type: {request.room_type}")
         mock_listings = [listing for listing in mock_listings if listing["room_type"] == request.room_type]
     
     # Filter by price range if specified
     if request.price_min is not None:
+        logger.info(f"Filtering by minimum price: {request.price_min}")
         mock_listings = [listing for listing in mock_listings if listing["price_per_night"] >= request.price_min]
     if request.price_max is not None:
+        logger.info(f"Filtering by maximum price: {request.price_max}")
         mock_listings = [listing for listing in mock_listings if listing["price_per_night"] <= request.price_max]
     
+    logger.info(f"Returning {len(mock_listings)} mock listings")
     return mock_listings
 
 @app.post("/attractions/search", response_model=List[Attraction])
