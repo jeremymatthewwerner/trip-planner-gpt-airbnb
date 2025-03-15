@@ -666,6 +666,66 @@ async def test_image():
         "message": "If you can see the image above, image display is working correctly."
     }
 
+@app.get("/debug/files")
+async def debug_files():
+    """
+    Debug endpoint to check the file system on the server.
+    """
+    logger.info("Checking file system")
+    
+    try:
+        import os
+        
+        # Get the base directory
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        logger.info(f"Base directory: {base_dir}")
+        
+        # Check if the mock data directory exists
+        mock_data_dir = os.path.join(base_dir, "api", "mock_data")
+        mock_data_exists = os.path.exists(mock_data_dir)
+        logger.info(f"Mock data directory exists: {mock_data_exists}")
+        
+        # List files in the mock data directory if it exists
+        mock_data_files = []
+        if mock_data_exists:
+            mock_data_files = os.listdir(mock_data_dir)
+            logger.info(f"Files in mock data directory: {mock_data_files}")
+        
+        # Check if the airbnb_listings.json file exists
+        airbnb_listings_path = os.path.join(mock_data_dir, "airbnb_listings.json")
+        airbnb_listings_exists = os.path.exists(airbnb_listings_path)
+        logger.info(f"airbnb_listings.json exists: {airbnb_listings_exists}")
+        
+        # Get the size of the airbnb_listings.json file if it exists
+        airbnb_listings_size = 0
+        if airbnb_listings_exists:
+            airbnb_listings_size = os.path.getsize(airbnb_listings_path)
+            logger.info(f"airbnb_listings.json size: {airbnb_listings_size} bytes")
+        
+        # Try to read the airbnb_listings.json file if it exists
+        airbnb_listings_content = []
+        if airbnb_listings_exists:
+            try:
+                with open(airbnb_listings_path, "r") as f:
+                    airbnb_listings_content = json.load(f)
+                logger.info(f"Successfully read airbnb_listings.json: {len(airbnb_listings_content)} items")
+            except Exception as e:
+                logger.error(f"Error reading airbnb_listings.json: {str(e)}")
+        
+        # Return the debug information
+        return {
+            "base_dir": base_dir,
+            "mock_data_dir": mock_data_dir,
+            "mock_data_exists": mock_data_exists,
+            "mock_data_files": mock_data_files,
+            "airbnb_listings_exists": airbnb_listings_exists,
+            "airbnb_listings_size": airbnb_listings_size,
+            "airbnb_listings_count": len(airbnb_listings_content)
+        }
+    except Exception as e:
+        logger.error(f"Error in debug endpoint: {str(e)}")
+        return {"error": str(e)}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000) 
