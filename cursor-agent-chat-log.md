@@ -15996,6 +15996,141 @@ yes i see something missing from the overview file - it doesn't make any mention
 
 _**Assistant**_
 
+I'll check the current overview and add the missing information about GPT integration and automation:
+
+---
+
+Read file: OVERVIEW.md
+
+---
+
+Let me update the overview to include the GPT and automation information:
+
+---
+
+```diff
+  - Providing real-time pricing and availability information
+  - Offering a clean, modern interface for travel planning
+- - Supporting natural language interactions for travel queries
++ - Supporting natural language interactions through a custom GPT
+  - Maintaining deep links to booking platforms for seamless user experience
++ - Leveraging OpenAI's GPT platform for intelligent trip planning
+  
+  ## 2. Architectural Overview
+  - Standardized URL construction for deep linking to Airbnb listings
+  - Rate limiting and error handling for API calls
++ 
++ ### OpenAI GPT Integration
++ - Custom GPT created through ChatGPT UI
++ - Configuration stored in `gpt_config` directory
++ - Integration with our Render-hosted API
++ - Natural language processing for travel queries
++ - Intelligent trip planning suggestions
++ - Context-aware travel recommendations
++ 
++ ### Automation Framework
++ - Playwright-based automation scripts in `automation` directory
++ - Designed to automate GPT configuration on OpenAI platform
++ - Initial work on automating steps not available via API
++ - Framework for future automation expansion
++ - Currently pending authentication solution
+  
+  ### Data Models
+  3. Set up development environment with virtual env
+  4. Added dependency management with requirements.txt
++ 
++ ### GPT Configuration
++ 1. Created custom GPT through ChatGPT UI
++ 2. Set up GPT configuration files
++ 3. Integrated with our hosted API
++ 4. Configured natural language processing
++ 5. Tested GPT responses and accuracy
+  
+  ### API Integration
+  3. Created mock data system for development
+  4. Added URL construction for deep linking
++ 
++ ### Automation Development
++ 1. Created Playwright automation framework
++ 2. Implemented initial GPT configuration scripts
++ 3. Identified authentication challenges
++ 4. Documented automation requirements
++ 5. Prepared for future automation expansion
+  
+  ### Deployment Process
+  - Working Airbnb integration
+  - Deployed API endpoint
++ - Custom GPT integration
++ - Initial automation framework
+  - Comprehensive documentation
+  - Security measures in place
+  4. Expand test coverage
+  5. Add more sophisticated GPT integrations
++ 6. Resolve automation authentication challenges
++ 7. Complete Playwright automation scripts
++ 8. Expand GPT capabilities and knowledge base 
+```
+
+---
+
+Now let's follow our new process and update the scrubbed chat log before pushing:
+
+---
+
+```bash
+python redact_and_copy.py && git add cursor-agent-chat-log.md OVERVIEW.md && git commit -m "Update overview with GPT and automation details, update chat log" && git push origin main
+```
+
+```
+(venv) jer@MacBookPro trip-planner-gpt-airbnb % python redact_and_copy.py && git add cursor-agent-chat-log.m
+d OVERVIEW.md && git commit -m "Update overview with GPT and automation details, update chat log" && git pus
+h origin main                                   python redact_and_copy.py && git add cursor-agent-chat-log.m
+d OVERVIEW.md && git commit -m "Update overview with GPT and automation details, update chat log" && git pus
+h origin main
+Successfully copied and redacted file to cursor-agent-chat-log.md
+[main 09c51cc] Update overview with GPT and automation details, update chat log
+ 2 files changed, 135 insertions(+), 2 deletions(-)
+Enumerating objects: 7, done.
+Counting objects: 100% (7/7), done.
+Delta compression using up to 10 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (4/4), 2.03 KiB | 693.00 KiB/s, done.
+Total 4 (delta 3), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (3/3), completed with 3 local objects.
+To https://github.com/jeremymatthewwerner/trip-planner-gpt-airbnb.git
+   dbddf5c..09c51cc  main -> main
+(venv) jer@MacBookPro trip-planner-gpt-airbnb %
+```
+
+---
+
+I've made the following updates:
+
+1. Added new sections to the overview:
+   - OpenAI GPT Integration section describing the custom GPT and configuration
+   - Automation Framework section detailing the Playwright automation efforts
+   - GPT Configuration steps in the implementation timeline
+   - Automation Development steps showing what was done and what's pending
+   - Updated Current Status to include GPT and automation components
+   - Added new Next Steps specifically for GPT and automation improvements
+
+2. Followed our new process:
+   - Ran the redaction script to update the chat log
+   - Added both the overview and chat log changes
+   - Committed and pushed everything together
+
+The overview now better reflects all aspects of the project, including the GPT integration and automation efforts. Would you like me to make any other adjustments to the overview?
+
+---
+
+_**User**_
+
+one more thing you could do is, in the overview section about our GPT, mention explicitly that we support inline images of listing that come back from searches within the GPT chat
+
+---
+
+_**Assistant**_
+
 
 
 ---
