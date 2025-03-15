@@ -120,17 +120,18 @@ async def search_airbnb_listings(request: AirbnbListingRequest):
     logger.info(f"Searching Airbnb listings for {request.location}")
     
     try:
-        # Try to use RapidAPI if key is available and not a placeholder
+        # Try to use RapidAPI if key is available
         if RAPIDAPI_KEY and RAPIDAPI_KEY != "your_valid_rapidapi_key_here":
             try:
                 listings = await search_airbnb_rapidapi(request)
+                logger.info(f"Successfully retrieved {len(listings)} listings from RapidAPI")
                 return listings
             except Exception as api_error:
                 logger.error(f"RapidAPI search failed: {str(api_error)}")
-                logger.info("Falling back to mock data.")
+                logger.info("Falling back to mock data")
                 return search_airbnb_mock(request)
         else:
-            logger.info("No valid RapidAPI key found. Using mock data.")
+            logger.info("No valid RapidAPI key found. Using mock data")
             return search_airbnb_mock(request)
     
     except Exception as e:
@@ -475,6 +476,12 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
             
             data = response.json()
             
+            # Check if the response indicates an error
+            if isinstance(data, dict) and data.get("error") is True:
+                error_message = data.get("message", "Unknown error from RapidAPI")
+                logger.error(f"RapidAPI returned error: {error_message}")
+                raise Exception(error_message)
+            
             # Transform the API response to match our data model
             listings = []
             for item in data.get("results", []):
@@ -484,64 +491,44 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
                         logger.error(f"Expected dictionary but got {type(item)}: {item}")
                         continue
                         
-                    # Safely extract values with proper type checking
-                    item_id = str(item.get("id", "")) if item.get("id") is not None else ""
-                    name = item.get("name", "") if isinstance(item.get("name"), str) else ""
+                    # Get the first image URL from the images array
+                    images = item.get("images", [])
+                    image_url = images[0] if images else ""
                     
-                    # Safely handle nested structures
-                    images = item.get("images", []) if isinstance(item.get("images"), list) else []
-                    image_url = ""
-                    if images and isinstance(images[0], dict):
-                        image_url = images[0].get("picture", "")
+                    # Get price information
+                    price_info = item.get("price", {})
+                    if not isinstance(price_info, dict):
+                        price_info = {}
                     
-                    # Safely handle price information
-                    price = item.get("price", {}) if isinstance(item.get("price"), dict) else {}
-                    price_per_night = 0.0
-                    total_price = 0.0
-                    if isinstance(price, dict):
-                        price_per_night = float(price.get("rate", 0)) if price.get("rate") is not None else 0.0
-                        total_price = float(price.get("total", 0)) if price.get("total") is not None else 0.0
-                    
-                    # Create a direct URL to Airbnb
-                    # Format: https://www.airbnb.com/rooms/ID?adults=X&check_in=YYYY-MM-DD&check_out=YYYY-MM-DD
-                    airbnb_url = f"https://www.airbnb.com/rooms/{item_id}?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}"
-                    
-                    # Check if the API already returned a URL with source_impression_id
-                    api_url = item.get("url", "")
-                    if api_url and "source_impression_id=" in api_url:
-                        import re
-                        match = re.search(r'source_impression_id=([^&]+)', api_url)
-                        if match:
-                            source_impression_id = match.group(1)
-                            airbnb_url += f"&source_impression_id={source_impression_id}"
-                    
+                    # Create the listing object
                     listing = {
-                        "id": item_id,
-                        "name": name,
-                        "url": airbnb_url if item_id else "",
+                        "id": str(item.get("id", "")),
+                        "name": item.get("name", ""),
+                        "url": item.get("url", ""),
                         "image_url": image_url,
-                        "price_per_night": price_per_night,
-                        "total_price": total_price,
-                        "rating": float(item.get("rating", 0)) if item.get("rating") is not None else 0.0,
-                        "reviews_count": int(item.get("reviewsCount", 0)) if item.get("reviewsCount") is not None else 0,
-                        "room_type": item.get("type", "") if isinstance(item.get("type"), str) else "",
-                        "beds": int(item.get("beds", 1)) if item.get("beds") is not None else 1,
-                        "bedrooms": int(item.get("bedrooms", 1)) if item.get("bedrooms") is not None else 1,
-                        "bathrooms": float(item.get("bathrooms", 1.0)) if item.get("bathrooms") is not None else 1.0,
-                        "amenities": item.get("previewAmenities", []) if isinstance(item.get("previewAmenities"), list) else [],
+                        "price_per_night": float(price_info.get("rate", 0)),
+                        "total_price": float(price_info.get("total", 0)),
+                        "rating": float(item.get("rating", 0)),
+                        "reviews_count": int(item.get("reviewsCount", 0)),
+                        "room_type": item.get("type", ""),
+                        "beds": int(item.get("beds", 1)),
+                        "bedrooms": int(item.get("bedrooms", 1)),
+                        "bathrooms": float(item.get("bathrooms", 1.0)),
+                        "amenities": item.get("previewAmenities", []),
                         "location": request.location,
-                        "superhost": bool(item.get("isSuperhost", False)) if item.get("isSuperhost") is not None else False
+                        "superhost": bool(item.get("isSuperhost", False))
                     }
                     listings.append(listing)
                 except Exception as e:
                     logger.error(f"Error processing listing: {str(e)}")
                     continue
             
+            logger.info(f"Found {len(listings)} listings from RapidAPI")
             return listings
+            
     except Exception as e:
-        logger.error(f"Error in RapidAPI request: {str(e)}")
-        # Fall back to mock data
-        return search_airbnb_mock(request)
+        logger.error(f"Error fetching listings from RapidAPI: {str(e)}")
+        raise
 
 def search_airbnb_mock(request: AirbnbListingRequest):
     """
@@ -612,14 +599,8 @@ def search_airbnb_mock(request: AirbnbListingRequest):
         
         # Save mock data for future use
         try:
-            import os
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            mock_data_dir = os.path.join(base_dir, "api", "mock_data")
-            os.makedirs(mock_data_dir, exist_ok=True)
-            mock_data_path = os.path.join(mock_data_dir, "airbnb_listings.json")
-            logger.info(f"Saving sample mock data to: {mock_data_path}")
-            
-            with open(mock_data_path, "w") as f:
+            os.makedirs("api/mock_data", exist_ok=True)
+            with open("api/mock_data/airbnb_listings.json", "w") as f:
                 json.dump(mock_listings, f)
             logger.info("Successfully saved sample mock data")
         except Exception as e:
