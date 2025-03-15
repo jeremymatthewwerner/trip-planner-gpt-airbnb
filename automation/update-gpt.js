@@ -35,6 +35,12 @@ const argv = yargs(hideBin(process.argv))
     description: 'Wait for manual CAPTCHA solving',
     default: true
   })
+  .option('auth-method', {
+    alias: 'a',
+    type: 'string',
+    description: 'Authentication method (direct, google)',
+    default: 'google'
+  })
   .help()
   .alias('help', 'h')
   .argv;
@@ -48,12 +54,18 @@ const config = {
   openApiSchemaPath: argv.schema,
   configJsonPath: argv.config,
   headless: argv.headless,
-  waitForCaptcha: argv['wait-for-captcha']
+  waitForCaptcha: argv['wait-for-captcha'],
+  authMethod: argv['auth-method']
 };
 
 // Validate configuration
-if (!config.openaiEmail || !config.openaiPassword) {
-  console.error('Error: OpenAI credentials not found. Please set OPENAI_EMAIL and OPENAI_PASSWORD in .env file.');
+if (!config.openaiEmail) {
+  console.error('Error: OpenAI email not found. Please set OPENAI_EMAIL in .env file.');
+  process.exit(1);
+}
+
+if (config.authMethod === 'direct' && !config.openaiPassword) {
+  console.error('Error: OpenAI password not found. Please set OPENAI_PASSWORD in .env file.');
   process.exit(1);
 }
 
@@ -86,6 +98,21 @@ function promptForCaptcha() {
 
   return new Promise((resolve) => {
     rl.question('CAPTCHA detected. Please solve it manually in the browser window and press Enter when done...', () => {
+      rl.close();
+      resolve();
+    });
+  });
+}
+
+// Function to prompt for manual login
+function promptForManualLogin() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  return new Promise((resolve) => {
+    rl.question('Please log in manually in the browser window and press Enter when done...', () => {
       rl.close();
       resolve();
     });
@@ -142,57 +169,83 @@ async function updateGpt() {
     await page.waitForSelector('button:has-text("Log in")');
     await page.click('button:has-text("Log in")');
     
-    // Wait for email input and enter email
-    console.log('Entering email...');
-    await page.waitForSelector('input[name="username"]');
-    await page.fill('input[name="username"]', config.openaiEmail);
-    await page.click('button[type="submit"]');
-    
-    // Check for CAPTCHA
-    const hasCaptcha = await page.locator('iframe[title="reCAPTCHA"]').count() > 0;
-    if (hasCaptcha) {
-      console.log('CAPTCHA detected!');
-      if (config.waitForCaptcha) {
-        console.log('Please solve the CAPTCHA manually in the browser window...');
-        await promptForCaptcha();
-      } else {
-        throw new Error('CAPTCHA detected but automatic solving is not implemented. Use --wait-for-captcha=true to solve manually.');
-      }
-    }
-    
-    // Wait for password input and enter password
-    console.log('Entering password...');
-    await page.waitForSelector('input[name="password"]');
-    await page.fill('input[name="password"]', config.openaiPassword);
-    await page.click('button[type="submit"]');
-    
-    // Check for CAPTCHA again
-    const hasCaptchaAfterPassword = await page.locator('iframe[title="reCAPTCHA"]').count() > 0;
-    if (hasCaptchaAfterPassword) {
-      console.log('CAPTCHA detected after password entry!');
-      if (config.waitForCaptcha) {
-        console.log('Please solve the CAPTCHA manually in the browser window...');
-        await promptForCaptcha();
-      } else {
-        throw new Error('CAPTCHA detected but automatic solving is not implemented. Use --wait-for-captcha=true to solve manually.');
-      }
-    }
-    
-    // Check for 2FA
-    try {
-      // Wait a short time to see if 2FA is required
-      await page.waitForSelector('input[inputmode="numeric"]', { timeout: 5000 });
-      console.log('2FA authentication required...');
+    if (config.authMethod === 'direct') {
+      // Direct OpenAI login
+      console.log('Using direct OpenAI login...');
       
-      // Prompt for 2FA code
-      const code = await prompt2FACode();
-      
-      // Enter the 2FA code
-      await page.fill('input[inputmode="numeric"]', code);
+      // Wait for email input and enter email
+      console.log('Entering email...');
+      await page.waitForSelector('input[name="username"]');
+      await page.fill('input[name="username"]', config.openaiEmail);
       await page.click('button[type="submit"]');
-    } catch (error) {
-      // No 2FA required, continue
-      console.log('No 2FA required or already handled by browser.');
+      
+      // Check for CAPTCHA
+      const hasCaptcha = await page.locator('iframe[title="reCAPTCHA"]').count() > 0;
+      if (hasCaptcha) {
+        console.log('CAPTCHA detected!');
+        if (config.waitForCaptcha) {
+          console.log('Please solve the CAPTCHA manually in the browser window...');
+          await promptForCaptcha();
+        } else {
+          throw new Error('CAPTCHA detected but automatic solving is not implemented. Use --wait-for-captcha=true to solve manually.');
+        }
+      }
+      
+      // Wait for password input and enter password
+      console.log('Entering password...');
+      await page.waitForSelector('input[name="password"]');
+      await page.fill('input[name="password"]', config.openaiPassword);
+      await page.click('button[type="submit"]');
+      
+      // Check for CAPTCHA again
+      const hasCaptchaAfterPassword = await page.locator('iframe[title="reCAPTCHA"]').count() > 0;
+      if (hasCaptchaAfterPassword) {
+        console.log('CAPTCHA detected after password entry!');
+        if (config.waitForCaptcha) {
+          console.log('Please solve the CAPTCHA manually in the browser window...');
+          await promptForCaptcha();
+        } else {
+          throw new Error('CAPTCHA detected but automatic solving is not implemented. Use --wait-for-captcha=true to solve manually.');
+        }
+      }
+      
+      // Check for 2FA
+      try {
+        // Wait a short time to see if 2FA is required
+        await page.waitForSelector('input[inputmode="numeric"]', { timeout: 5000 });
+        console.log('2FA authentication required...');
+        
+        // Prompt for 2FA code
+        const code = await prompt2FACode();
+        
+        // Enter the 2FA code
+        await page.fill('input[inputmode="numeric"]', code);
+        await page.click('button[type="submit"]');
+      } catch (error) {
+        // No 2FA required, continue
+        console.log('No 2FA required or already handled by browser.');
+      }
+    } else if (config.authMethod === 'google') {
+      // Google OAuth login
+      console.log('Using Google OAuth login...');
+      
+      // Click on "Continue with Google" button
+      await page.waitForSelector('button:has-text("Continue with Google")');
+      await page.click('button:has-text("Continue with Google")');
+      
+      // Wait for Google login page to load
+      await page.waitForURL('https://accounts.google.com/**', { timeout: 10000 });
+      
+      console.log('Google login page loaded. Please log in manually...');
+      console.log(`Use your Google account associated with: ${config.openaiEmail}`);
+      
+      // Prompt user to complete login manually
+      await promptForManualLogin();
+      
+      // Wait for redirect back to OpenAI
+      console.log('Waiting for redirect back to OpenAI...');
+    } else {
+      throw new Error(`Unsupported authentication method: ${config.authMethod}`);
     }
     
     // Wait for the chat page to load
