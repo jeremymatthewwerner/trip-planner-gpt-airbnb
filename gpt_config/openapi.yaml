@@ -6,7 +6,7 @@ info:
 servers:
   - url: http://127.0.0.1:8000
     description: Local development server
-  - url: https://api-url-after-deployment.com
+  - url: https://trip-planner-api.onrender.com
     description: Production server
 paths:
   /airbnb/search:
