@@ -46,7 +46,7 @@ def create_mock_data():
                 {
                     "id": "12345",
                     "name": "Luxury Beachfront Villa",
-                    "url": "https://www.airbnb.com/rooms/12345?adults=2&check_in=2023-12-15&check_out=2023-12-20",
+                    "url": "https://airbnb.com/h/luxury-beachfront-villa-12345",  # Using h/ format which is more resilient
                     "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
                     "price_per_night": 250.0,
                     "total_price": 1750.0,
@@ -63,7 +63,7 @@ def create_mock_data():
                 {
                     "id": "67890",
                     "name": "Cozy Downtown Apartment",
-                    "url": "https://www.airbnb.com/rooms/67890?adults=2&check_in=2023-12-15&check_out=2023-12-20",
+                    "url": "https://airbnb.com/h/cozy-downtown-apartment-67890",  # Using h/ format which is more resilient
                     "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
                     "price_per_night": 120.0,
                     "total_price": 840.0,
@@ -80,7 +80,7 @@ def create_mock_data():
                 {
                     "id": "24680",
                     "name": "Mountain Retreat Cabin",
-                    "url": "https://www.airbnb.com/rooms/24680?adults=2&check_in=2023-12-15&check_out=2023-12-20",
+                    "url": "https://airbnb.com/h/mountain-retreat-cabin-24680",  # Using h/ format which is more resilient
                     "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
                     "price_per_night": 180.0,
                     "total_price": 1260.0,
@@ -261,7 +261,7 @@ def load_mock_data(filename):
                 {
                     "id": "12345",
                     "name": "Luxury Beachfront Villa",
-                    "url": "https://www.airbnb.com/rooms/12345?adults=2&check_in=2024-05-01&check_out=2024-05-05",
+                    "url": "https://airbnb.com/h/luxury-beachfront-villa-12345",  # Simplified URL without parameters
                     "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
                     "price_per_night": 250.0,
                     "total_price": 1750.0,
@@ -278,7 +278,7 @@ def load_mock_data(filename):
                 {
                     "id": "67890",
                     "name": "Cozy Downtown Apartment",
-                    "url": "https://www.airbnb.com/rooms/67890?adults=2&check_in=2024-05-01&check_out=2024-05-05",
+                    "url": "https://airbnb.com/h/cozy-downtown-apartment-67890",  # Simplified URL without parameters
                     "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
                     "price_per_night": 120.0,
                     "total_price": 840.0,
@@ -295,7 +295,7 @@ def load_mock_data(filename):
                 {
                     "id": "24680",
                     "name": "Mountain Retreat Cabin",
-                    "url": "https://www.airbnb.com/rooms/24680?adults=2&check_in=2024-05-01&check_out=2024-05-05",
+                    "url": "https://airbnb.com/h/mountain-retreat-cabin-24680",  # Simplified URL without parameters
                     "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
                     "price_per_night": 180.0,
                     "total_price": 1260.0,
@@ -377,7 +377,7 @@ async def search_airbnb_listings(request: AirbnbListingRequest):
         {
             "id": "12345",
             "name": "Luxury Beachfront Villa",
-            "url": f"https://www.airbnb.com/rooms/12345?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
+            "url": "https://airbnb.com/h/luxury-beachfront-villa-12345",  # Using h/ format which is more resilient
             "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
             "price_per_night": 250.0,
             "total_price": 1750.0,
@@ -394,7 +394,7 @@ async def search_airbnb_listings(request: AirbnbListingRequest):
         {
             "id": "67890",
             "name": "Cozy Downtown Apartment",
-            "url": f"https://www.airbnb.com/rooms/67890?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
+            "url": "https://airbnb.com/h/cozy-downtown-apartment-67890",  # Using h/ format which is more resilient
             "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
             "price_per_night": 120.0,
             "total_price": 840.0,
@@ -411,7 +411,7 @@ async def search_airbnb_listings(request: AirbnbListingRequest):
         {
             "id": "24680",
             "name": "Mountain Retreat Cabin",
-            "url": f"https://www.airbnb.com/rooms/24680?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
+            "url": "https://airbnb.com/h/mountain-retreat-cabin-24680",  # Using h/ format which is more resilient
             "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
             "price_per_night": 180.0,
             "total_price": 1260.0,
@@ -593,7 +593,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
             {
                 "id": "12345",
                 "name": "Luxury Beachfront Villa",
-                "url": f"https://www.airbnb.com/rooms/12345?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
+                "url": "https://airbnb.com/h/luxury-beachfront-villa-12345",  # Using h/ format which is more resilient
                 "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
                 "price_per_night": 250.0,
                 "total_price": 1750.0,
@@ -610,7 +610,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
             {
                 "id": "67890",
                 "name": "Cozy Downtown Apartment",
-                "url": f"https://www.airbnb.com/rooms/67890?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
+                "url": "https://airbnb.com/h/cozy-downtown-apartment-67890",  # Using h/ format which is more resilient
                 "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
                 "price_per_night": 120.0,
                 "total_price": 840.0,
@@ -627,7 +627,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
             {
                 "id": "24680",
                 "name": "Mountain Retreat Cabin",
-                "url": f"https://www.airbnb.com/rooms/24680?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
+                "url": "https://airbnb.com/h/mountain-retreat-cabin-24680",  # Using h/ format which is more resilient
                 "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
                 "price_per_night": 180.0,
                 "total_price": 1260.0,
@@ -662,8 +662,9 @@ def search_airbnb_mock(request: AirbnbListingRequest):
         logger.info("Updating URLs in existing mock data")
         for listing in mock_listings:
             listing_id = listing.get("id", "")
-            if listing_id:
-                listing["url"] = f"https://www.airbnb.com/rooms/{listing_id}?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}"
+            listing_name = listing.get("name", "").lower().replace(" ", "-")
+            if listing_id and listing_name:
+                listing["url"] = f"https://airbnb.com/h/{listing_name}-{listing_id}"
             # IMPORTANT: Always update the location to match the requested location
             # This ensures listings will be found regardless of their original location
             listing["location"] = request.location
@@ -851,11 +852,13 @@ async def get_listing_image(listing_id: str):
                             logger.info(f"Found image URL (str): {image_url}")
                         
                         if image_url:
+                            name = item.get("name", "Beautiful Airbnb Listing")
+                            name_slug = name.lower().replace(" ", "-")
                             listing = {
                                 "id": listing_id,
-                                "name": item.get("name", "Beautiful Airbnb Listing"),
+                                "name": name,
                                 "image_url": image_url,
-                                "url": f"https://www.airbnb.com/rooms/{listing_id}"
+                                "url": f"https://airbnb.com/h/{name_slug}-{listing_id}"
                             }
         except Exception as e:
             logger.error(f"Error fetching listing from RapidAPI: {str(e)}")
@@ -910,7 +913,7 @@ async def get_listings_images(request: AirbnbListingRequest):
         {
             "id": "12345",
             "name": "Luxury Beachfront Villa",
-            "url": f"https://www.airbnb.com/rooms/12345?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
+            "url": "https://airbnb.com/h/luxury-beachfront-villa-12345",  # Using h/ format which is more resilient
             "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
             "price_per_night": 250.0,
             "total_price": 1750.0,
@@ -927,7 +930,7 @@ async def get_listings_images(request: AirbnbListingRequest):
         {
             "id": "67890",
             "name": "Cozy Downtown Apartment",
-            "url": f"https://www.airbnb.com/rooms/67890?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
+            "url": "https://airbnb.com/h/cozy-downtown-apartment-67890",  # Using h/ format which is more resilient
             "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
             "price_per_night": 120.0,
             "total_price": 840.0,
@@ -944,7 +947,7 @@ async def get_listings_images(request: AirbnbListingRequest):
         {
             "id": "24680",
             "name": "Mountain Retreat Cabin",
-            "url": f"https://www.airbnb.com/rooms/24680?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
+            "url": "https://airbnb.com/h/mountain-retreat-cabin-24680",  # Using h/ format which is more resilient
             "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
             "price_per_night": 180.0,
             "total_price": 1260.0,
