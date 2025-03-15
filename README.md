@@ -318,4 +318,4 @@ For more details, see the [automation README](automation/README.md).
 
 ## License
 
-MIT 
+MIT # SSH test
