@@ -43,4 +43,7 @@ ehthumbs.db
 Thumbs.db
 
 # API mock data
-api/mock_data/ 
+api/mock_data/
+
+# Cursor export output
+cursor-export-output/ 
