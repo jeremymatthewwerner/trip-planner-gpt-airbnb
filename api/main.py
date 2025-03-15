@@ -9,6 +9,7 @@ import logging
 from datetime import datetime, timedelta
 import json
 from fastapi.responses import JSONResponse
+from urllib.parse import urlencode
 
 # Load environment variables
 load_dotenv()
@@ -532,7 +533,11 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
                     listing = {
                         "id": str(item.get("id", "")),
                         "name": item.get("name", ""),
-                        "url": f"https://www.airbnb.com/rooms/{item.get('id')}?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}&source_impression_id=p3_1742061945_P3jMBbsU8EDOGNxo",
+                        "url": f"https://www.airbnb.com/rooms/{item.get('id')}?" + urlencode({
+                            "check_in": request.check_in,
+                            "check_out": request.check_out,
+                            "adults": request.adults
+                        }),
                         "image_url": image_url,
                         "price_per_night": float(price_info.get("rate", 0)),
                         "total_price": float(price_info.get("total", 0)),
@@ -639,7 +644,11 @@ def search_airbnb_mock(request: AirbnbListingRequest):
         for listing in mock_listings:
             listing_id = listing.get("id", "")
             if listing_id:
-                listing["url"] = f"https://www.airbnb.com/rooms/{listing_id}?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}&source_impression_id=p3_1742061945_P3jMBbsU8EDOGNxo"
+                listing["url"] = f"https://www.airbnb.com/rooms/{listing_id}?" + urlencode({
+                    "check_in": request.check_in,
+                    "check_out": request.check_out,
+                    "adults": request.adults
+                })
             # IMPORTANT: Always update the location to match the requested location
             # This ensures listings will be found regardless of their original location
             listing["location"] = request.location
