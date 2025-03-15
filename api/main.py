@@ -36,9 +36,9 @@ if not RAPIDAPI_KEY:
 # Models
 class AirbnbListingRequest(BaseModel):
     location: str
-    check_in: str
-    check_out: str
-    adults: int
+    check_in: str = Field(default_factory=lambda: "2025-03-20")
+    check_out: str = Field(default_factory=lambda: "2025-03-25")
+    adults: int = Field(default_factory=lambda: 2)
     price_min: Optional[int] = None
     price_max: Optional[int] = None
     room_type: Optional[str] = None
