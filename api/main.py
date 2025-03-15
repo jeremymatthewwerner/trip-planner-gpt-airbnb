@@ -371,68 +371,38 @@ async def search_airbnb_listings(request: AirbnbListingRequest):
     """
     logger.info(f"Searching Airbnb listings for {request.location}")
     
-    # ALWAYS return hardcoded data directly for reliability
-    logger.info("Returning hardcoded sample data directly")
-    hardcoded_listings = [
-        {
-            "id": "12345",
-            "name": "Luxury Beachfront Villa",
-            "url": "https://airbnb.com/h/luxury-beachfront-villa-12345",  # Using h/ format which is more resilient
-            "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
-            "price_per_night": 250.0,
-            "total_price": 1750.0,
-            "rating": 4.9,
-            "reviews_count": 120,
-            "room_type": "entire_home",
-            "beds": 3,
-            "bedrooms": 2,
-            "bathrooms": 2.5,
-            "amenities": ["Pool", "Wifi", "Kitchen", "Air conditioning"],
-            "location": request.location,
-            "superhost": True
-        },
-        {
-            "id": "67890",
-            "name": "Cozy Downtown Apartment",
-            "url": "https://airbnb.com/h/cozy-downtown-apartment-67890",  # Using h/ format which is more resilient
-            "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
-            "price_per_night": 120.0,
-            "total_price": 840.0,
-            "rating": 4.7,
-            "reviews_count": 85,
-            "room_type": "entire_home",
-            "beds": 1,
-            "bedrooms": 1,
-            "bathrooms": 1.0,
-            "amenities": ["Wifi", "Kitchen", "Washer"],
-            "location": request.location,
-            "superhost": False
-        },
-        {
-            "id": "24680",
-            "name": "Mountain Retreat Cabin",
-            "url": "https://airbnb.com/h/mountain-retreat-cabin-24680",  # Using h/ format which is more resilient
-            "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
-            "price_per_night": 180.0,
-            "total_price": 1260.0,
-            "rating": 4.8,
-            "reviews_count": 95,
-            "room_type": "entire_home",
-            "beds": 2,
-            "bedrooms": 2,
-            "bathrooms": 1.5,
-            "amenities": ["Fireplace", "Hot tub", "Wifi", "Kitchen"],
-            "location": request.location,
-            "superhost": True
-        }
-    ]
+    # Get the base URL for our API
+    base_url = "https://trip-planner-gpt-airbnb.onrender.com"
     
-    # Log the data we're returning for debugging
-    logger.info(f"Returning {len(hardcoded_listings)} hardcoded listings")
-    for i, listing in enumerate(hardcoded_listings):
-        logger.info(f"Listing {i+1}: {listing['name']} - {listing['id']}")
+    try:
+        # Try to use RapidAPI if key is available and not a placeholder
+        if RAPIDAPI_KEY and RAPIDAPI_KEY != "your_valid_rapidapi_key_here":
+            try:
+                listings = await search_airbnb_rapidapi(request)
+                
+                # Update the URLs to use our redirect endpoint
+                for listing in listings:
+                    listing_id = listing.get("id", "")
+                    if listing_id:
+                        listing["url"] = f"{base_url}/redirect/airbnb/{listing_id}"
+                
+                return listings
+            except Exception as api_error:
+                logger.error(f"RapidAPI search failed: {str(api_error)}")
+                logger.info("Falling back to mock data.")
+                return search_airbnb_mock(request, base_url)
+        else:
+            logger.info("No valid RapidAPI key found. Using mock data.")
+            return search_airbnb_mock(request, base_url)
     
-    return hardcoded_listings
+    except Exception as e:
+        logger.error(f"Error searching Airbnb listings: {str(e)}")
+        # Always try to return mock data as a last resort
+        try:
+            return search_airbnb_mock(request, base_url)
+        except Exception as mock_error:
+            logger.error(f"Mock data fallback also failed: {str(mock_error)}")
+            raise HTTPException(status_code=500, detail="Failed to retrieve Airbnb listings")
 
 async def search_airbnb_rapidapi(request: AirbnbListingRequest):
     """
@@ -440,6 +410,9 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
     Falls back to mock data if the API call fails.
     """
     url = "https://airbnb13.p.rapidapi.com/search-location"
+    
+    # Get the base URL for our API
+    base_url = "https://trip-planner-gpt-airbnb.onrender.com"
     
     # Map our room types to RapidAPI's room types
     room_type_map = {
@@ -525,33 +498,13 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
                         price_per_night = float(price.get("rate", 0)) if price.get("rate") is not None else 0.0
                         total_price = float(price.get("total", 0)) if price.get("total") is not None else 0.0
                     
-                    # Create a URL with date and guest parameters using Airbnb's actual URL format
-                    # Format: https://www.airbnb.com/rooms/ID?adults=X&check_in=YYYY-MM-DD&check_out=YYYY-MM-DD
-                    # Preserve any existing source_impression_id if present in the API response
-                    base_url = f"https://www.airbnb.com/rooms/{item_id}"
-                    
-                    # Check if the API already returned a URL with parameters
-                    api_url = item.get("url", "")
-                    source_impression_id = ""
-                    
-                    # Extract source_impression_id from API URL if present
-                    if api_url and "source_impression_id=" in api_url:
-                        import re
-                        match = re.search(r'source_impression_id=([^&]+)', api_url)
-                        if match:
-                            source_impression_id = match.group(1)
-                    
-                    # Build the URL with our parameters
-                    url_with_params = f"{base_url}?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}"
-                    
-                    # Add source_impression_id if we found one
-                    if source_impression_id:
-                        url_with_params += f"&source_impression_id={source_impression_id}"
+                    # Create a URL with our redirect endpoint
+                    listing_url = f"{base_url}/redirect/airbnb/{item_id}"
                     
                     listing = {
                         "id": item_id,
                         "name": name,
-                        "url": url_with_params if item_id else "",
+                        "url": listing_url if item_id else "",
                         "image_url": image_url,
                         "price_per_night": price_per_night,
                         "total_price": total_price,
@@ -574,9 +527,9 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
     except Exception as e:
         logger.error(f"Error in RapidAPI request: {str(e)}")
         # Fall back to mock data
-        return search_airbnb_mock(request)
+        return search_airbnb_mock(request, base_url)
 
-def search_airbnb_mock(request: AirbnbListingRequest):
+def search_airbnb_mock(request: AirbnbListingRequest, base_url: str):
     """
     Search for Airbnb listings using mock data.
     """
@@ -593,7 +546,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
             {
                 "id": "12345",
                 "name": "Luxury Beachfront Villa",
-                "url": "https://airbnb.com/h/luxury-beachfront-villa-12345",  # Using h/ format which is more resilient
+                "url": f"{base_url}/redirect/airbnb/12345",  # Use our redirect endpoint
                 "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
                 "price_per_night": 250.0,
                 "total_price": 1750.0,
@@ -610,7 +563,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
             {
                 "id": "67890",
                 "name": "Cozy Downtown Apartment",
-                "url": "https://airbnb.com/h/cozy-downtown-apartment-67890",  # Using h/ format which is more resilient
+                "url": f"{base_url}/redirect/airbnb/67890",  # Use our redirect endpoint
                 "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
                 "price_per_night": 120.0,
                 "total_price": 840.0,
@@ -627,7 +580,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
             {
                 "id": "24680",
                 "name": "Mountain Retreat Cabin",
-                "url": "https://airbnb.com/h/mountain-retreat-cabin-24680",  # Using h/ format which is more resilient
+                "url": f"{base_url}/redirect/airbnb/24680",  # Use our redirect endpoint
                 "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
                 "price_per_night": 180.0,
                 "total_price": 1260.0,
@@ -658,28 +611,26 @@ def search_airbnb_mock(request: AirbnbListingRequest):
         except Exception as e:
             logger.error(f"Error saving mock data: {str(e)}")
     else:
-        # Update URLs in existing mock data to include query parameters
+        # Update URLs in existing mock data to use our redirect endpoint
         logger.info("Updating URLs in existing mock data")
         for listing in mock_listings:
             listing_id = listing.get("id", "")
-            listing_name = listing.get("name", "").lower().replace(" ", "-")
-            if listing_id and listing_name:
-                listing["url"] = f"https://airbnb.com/h/{listing_name}-{listing_id}"
+            if listing_id:
+                listing["url"] = f"{base_url}/redirect/airbnb/{listing_id}"
             # IMPORTANT: Always update the location to match the requested location
             # This ensures listings will be found regardless of their original location
             listing["location"] = request.location
     
-    # TEMPORARILY DISABLE FILTERING
     # Filter by room type if specified
-    if request.room_type and False:  # Disabled
+    if request.room_type:
         logger.info(f"Filtering by room type: {request.room_type}")
         mock_listings = [listing for listing in mock_listings if listing["room_type"] == request.room_type]
     
     # Filter by price range if specified
-    if request.price_min is not None and False:  # Disabled
+    if request.price_min is not None:
         logger.info(f"Filtering by minimum price: {request.price_min}")
         mock_listings = [listing for listing in mock_listings if listing["price_per_night"] >= request.price_min]
-    if request.price_max is not None and False:  # Disabled
+    if request.price_max is not None:
         logger.info(f"Filtering by maximum price: {request.price_max}")
         mock_listings = [listing for listing in mock_listings if listing["price_per_night"] <= request.price_max]
     
@@ -907,65 +858,15 @@ async def get_listings_images(request: AirbnbListingRequest):
     """
     logger.info(f"Getting images for Airbnb listings in {request.location}")
     
-    # ALWAYS return hardcoded data directly for reliability
-    logger.info("Returning hardcoded sample data directly")
-    hardcoded_listings = [
-        {
-            "id": "12345",
-            "name": "Luxury Beachfront Villa",
-            "url": "https://airbnb.com/h/luxury-beachfront-villa-12345",  # Using h/ format which is more resilient
-            "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
-            "price_per_night": 250.0,
-            "total_price": 1750.0,
-            "rating": 4.9,
-            "reviews_count": 120,
-            "room_type": "entire_home",
-            "beds": 3,
-            "bedrooms": 2,
-            "bathrooms": 2.5,
-            "amenities": ["Pool", "Wifi", "Kitchen", "Air conditioning"],
-            "location": request.location,
-            "superhost": True
-        },
-        {
-            "id": "67890",
-            "name": "Cozy Downtown Apartment",
-            "url": "https://airbnb.com/h/cozy-downtown-apartment-67890",  # Using h/ format which is more resilient
-            "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
-            "price_per_night": 120.0,
-            "total_price": 840.0,
-            "rating": 4.7,
-            "reviews_count": 85,
-            "room_type": "entire_home",
-            "beds": 1,
-            "bedrooms": 1,
-            "bathrooms": 1.0,
-            "amenities": ["Wifi", "Kitchen", "Washer"],
-            "location": request.location,
-            "superhost": False
-        },
-        {
-            "id": "24680",
-            "name": "Mountain Retreat Cabin",
-            "url": "https://airbnb.com/h/mountain-retreat-cabin-24680",  # Using h/ format which is more resilient
-            "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
-            "price_per_night": 180.0,
-            "total_price": 1260.0,
-            "rating": 4.8,
-            "reviews_count": 95,
-            "room_type": "entire_home",
-            "beds": 2,
-            "bedrooms": 2,
-            "bathrooms": 1.5,
-            "amenities": ["Fireplace", "Hot tub", "Wifi", "Kitchen"],
-            "location": request.location,
-            "superhost": True
-        }
-    ]
+    # Get listings based on the request
+    listings = await search_airbnb_listings(request)
+    
+    # Limit to top 3 listings to avoid overwhelming the chat
+    listings = listings[:3]
     
     # Format the response with markdown for each listing
     formatted_listings = []
-    for listing in hardcoded_listings:
+    for listing in listings:
         image_url = listing.get("image_url", "")
         if image_url:
             # Ensure the image URL is using HTTPS
