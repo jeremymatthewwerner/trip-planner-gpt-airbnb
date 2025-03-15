@@ -504,7 +504,7 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
                     listing = {
                         "id": str(item.get("id", "")),
                         "name": item.get("name", ""),
-                        "url": item.get("url", ""),
+                        "url": f"https://www.airbnb.com/rooms/{item.get('id')}?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}",
                         "image_url": image_url,
                         "price_per_night": float(price_info.get("rate", 0)),
                         "total_price": float(price_info.get("total", 0)),
@@ -547,7 +547,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
             {
                 "id": "12345",
                 "name": "Luxury Beachfront Villa",
-                "url": f"https://www.airbnb.com/rooms/12345?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
+                "url": f"https://www.airbnb.com/rooms/12345?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}",
                 "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
                 "price_per_night": 250.0,
                 "total_price": 1750.0,
@@ -564,7 +564,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
             {
                 "id": "67890",
                 "name": "Cozy Downtown Apartment",
-                "url": f"https://www.airbnb.com/rooms/67890?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
+                "url": f"https://www.airbnb.com/rooms/67890?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}",
                 "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
                 "price_per_night": 120.0,
                 "total_price": 840.0,
@@ -581,7 +581,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
             {
                 "id": "24680",
                 "name": "Mountain Retreat Cabin",
-                "url": f"https://www.airbnb.com/rooms/24680?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
+                "url": f"https://www.airbnb.com/rooms/24680?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}",
                 "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
                 "price_per_night": 180.0,
                 "total_price": 1260.0,
@@ -611,7 +611,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
         for listing in mock_listings:
             listing_id = listing.get("id", "")
             if listing_id:
-                listing["url"] = f"https://www.airbnb.com/rooms/{listing_id}?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}"
+                listing["url"] = f"https://www.airbnb.com/rooms/{listing_id}?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}"
             # IMPORTANT: Always update the location to match the requested location
             # This ensures listings will be found regardless of their original location
             listing["location"] = request.location
