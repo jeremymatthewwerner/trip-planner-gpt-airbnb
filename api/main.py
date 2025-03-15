@@ -17,151 +17,6 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Create mock data on startup
-def create_mock_data():
-    """
-    Create mock data files on startup to ensure they're always available.
-    """
-    logger.info("Creating mock data on startup")
-    
-    try:
-        import os
-        
-        # Get the base directory
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        logger.info(f"Base directory: {base_dir}")
-        
-        # Create the mock data directory if it doesn't exist
-        mock_data_dir = os.path.join(base_dir, "api", "mock_data")
-        os.makedirs(mock_data_dir, exist_ok=True)
-        logger.info(f"Created mock data directory: {mock_data_dir}")
-        
-        # Create the airbnb_listings.json file if it doesn't exist
-        airbnb_listings_path = os.path.join(mock_data_dir, "airbnb_listings.json")
-        if not os.path.exists(airbnb_listings_path):
-            logger.info(f"Creating airbnb_listings.json at: {airbnb_listings_path}")
-            
-            # Create sample data
-            mock_listings = [
-                {
-                    "id": "12345",
-                    "name": "Luxury Beachfront Villa",
-                    "url": "https://airbnb.com/h/luxury-beachfront-villa-12345",  # Using h/ format which is more resilient
-                    "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
-                    "price_per_night": 250.0,
-                    "total_price": 1750.0,
-                    "rating": 4.9,
-                    "reviews_count": 120,
-                    "room_type": "entire_home",
-                    "beds": 3,
-                    "bedrooms": 2,
-                    "bathrooms": 2.5,
-                    "amenities": ["Pool", "Wifi", "Kitchen", "Air conditioning"],
-                    "location": "Paris, France",
-                    "superhost": True
-                },
-                {
-                    "id": "67890",
-                    "name": "Cozy Downtown Apartment",
-                    "url": "https://airbnb.com/h/cozy-downtown-apartment-67890",  # Using h/ format which is more resilient
-                    "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
-                    "price_per_night": 120.0,
-                    "total_price": 840.0,
-                    "rating": 4.7,
-                    "reviews_count": 85,
-                    "room_type": "entire_home",
-                    "beds": 1,
-                    "bedrooms": 1,
-                    "bathrooms": 1.0,
-                    "amenities": ["Wifi", "Kitchen", "Washer"],
-                    "location": "Paris, France",
-                    "superhost": False
-                },
-                {
-                    "id": "24680",
-                    "name": "Mountain Retreat Cabin",
-                    "url": "https://airbnb.com/h/mountain-retreat-cabin-24680",  # Using h/ format which is more resilient
-                    "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
-                    "price_per_night": 180.0,
-                    "total_price": 1260.0,
-                    "rating": 4.8,
-                    "reviews_count": 95,
-                    "room_type": "entire_home",
-                    "beds": 2,
-                    "bedrooms": 2,
-                    "bathrooms": 1.5,
-                    "amenities": ["Fireplace", "Hot tub", "Wifi", "Kitchen"],
-                    "location": "Paris, France",
-                    "superhost": True
-                }
-            ]
-            
-            # Write the data to the file
-            with open(airbnb_listings_path, "w") as f:
-                json.dump(mock_listings, f)
-            
-            logger.info(f"Successfully created airbnb_listings.json with {len(mock_listings)} listings")
-        else:
-            logger.info(f"airbnb_listings.json already exists at: {airbnb_listings_path}")
-        
-        # Create the attractions.json file if it doesn't exist
-        attractions_path = os.path.join(mock_data_dir, "attractions.json")
-        if not os.path.exists(attractions_path):
-            logger.info(f"Creating attractions.json at: {attractions_path}")
-            
-            # Create sample data
-            mock_attractions = [
-                {
-                    "name": "Eiffel Tower",
-                    "description": "Iconic iron tower with stunning views of Paris.",
-                    "category": "landmarks",
-                    "price_level": "medium",
-                    "rating": 4.7,
-                    "reviews_count": 1500,
-                    "url": "https://www.toureiffel.paris/en",
-                    "image_url": "https://images.unsplash.com/photo-1543349689-9a4d426bee8e?q=80&w=1000&auto=format&fit=crop",
-                    "location": "Paris, France"
-                },
-                {
-                    "name": "Louvre Museum",
-                    "description": "World's largest art museum and home to the Mona Lisa.",
-                    "category": "museums",
-                    "price_level": "medium",
-                    "rating": 4.8,
-                    "reviews_count": 1200,
-                    "url": "https://www.louvre.fr/en",
-                    "image_url": "https://images.unsplash.com/photo-1565099824688-e93eb20fe622?q=80&w=1000&auto=format&fit=crop",
-                    "location": "Paris, France"
-                },
-                {
-                    "name": "Seine River Cruise",
-                    "description": "Relaxing boat tour along the Seine River with views of Paris landmarks.",
-                    "category": "tours",
-                    "price_level": "medium",
-                    "rating": 4.6,
-                    "reviews_count": 950,
-                    "url": "https://www.bateauxparisiens.com/en.html",
-                    "image_url": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?q=80&w=1000&auto=format&fit=crop",
-                    "location": "Paris, France"
-                }
-            ]
-            
-            # Write the data to the file
-            with open(attractions_path, "w") as f:
-                json.dump(mock_attractions, f)
-            
-            logger.info(f"Successfully created attractions.json with {len(mock_attractions)} attractions")
-        else:
-            logger.info(f"attractions.json already exists at: {attractions_path}")
-        
-        return True
-    except Exception as e:
-        logger.error(f"Error creating mock data: {str(e)}")
-        return False
-
-# Create mock data on startup
-create_mock_data()
-
 app = FastAPI(title="Trip Planner API")
 
 # Add CORS middleware
@@ -239,119 +94,12 @@ class Itinerary(BaseModel):
 # Mock data for development (in a real app, this would come from actual API calls)
 def load_mock_data(filename):
     try:
-        # Use absolute path to find the mock data
-        import os
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        mock_data_path = os.path.join(base_dir, "api", "mock_data", filename)
-        logger.info(f"Loading mock data from: {mock_data_path}")
-        
-        with open(mock_data_path, "r") as f:
-            data = json.load(f)
-            logger.info(f"Successfully loaded mock data: {len(data)} items")
-            return data
-    except FileNotFoundError as e:
-        logger.error(f"Mock data file not found: {str(e)}")
+        with open(f"api/mock_data/{filename}", "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
         # Create directory if it doesn't exist
-        os.makedirs(os.path.join(base_dir, "api", "mock_data"), exist_ok=True)
-        
-        # Return hardcoded sample data instead of empty data
-        if filename == "airbnb_listings.json":
-            logger.info("Returning hardcoded sample Airbnb listings")
-            return [
-                {
-                    "id": "12345",
-                    "name": "Luxury Beachfront Villa",
-                    "url": "https://airbnb.com/h/luxury-beachfront-villa-12345",  # Simplified URL without parameters
-                    "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
-                    "price_per_night": 250.0,
-                    "total_price": 1750.0,
-                    "rating": 4.9,
-                    "reviews_count": 120,
-                    "room_type": "entire_home",
-                    "beds": 3,
-                    "bedrooms": 2,
-                    "bathrooms": 2.5,
-                    "amenities": ["Pool", "Wifi", "Kitchen", "Air conditioning"],
-                    "location": "Paris, France",
-                    "superhost": True
-                },
-                {
-                    "id": "67890",
-                    "name": "Cozy Downtown Apartment",
-                    "url": "https://airbnb.com/h/cozy-downtown-apartment-67890",  # Simplified URL without parameters
-                    "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
-                    "price_per_night": 120.0,
-                    "total_price": 840.0,
-                    "rating": 4.7,
-                    "reviews_count": 85,
-                    "room_type": "entire_home",
-                    "beds": 1,
-                    "bedrooms": 1,
-                    "bathrooms": 1.0,
-                    "amenities": ["Wifi", "Kitchen", "Washer"],
-                    "location": "Paris, France",
-                    "superhost": False
-                },
-                {
-                    "id": "24680",
-                    "name": "Mountain Retreat Cabin",
-                    "url": "https://airbnb.com/h/mountain-retreat-cabin-24680",  # Simplified URL without parameters
-                    "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
-                    "price_per_night": 180.0,
-                    "total_price": 1260.0,
-                    "rating": 4.8,
-                    "reviews_count": 95,
-                    "room_type": "entire_home",
-                    "beds": 2,
-                    "bedrooms": 2,
-                    "bathrooms": 1.5,
-                    "amenities": ["Fireplace", "Hot tub", "Wifi", "Kitchen"],
-                    "location": "Paris, France",
-                    "superhost": True
-                }
-            ]
-        elif filename == "attractions.json":
-            logger.info("Returning hardcoded sample attractions")
-            return [
-                {
-                    "name": "Eiffel Tower",
-                    "description": "Iconic iron tower with stunning views of Paris.",
-                    "category": "landmarks",
-                    "price_level": "medium",
-                    "rating": 4.7,
-                    "reviews_count": 1500,
-                    "url": "https://www.toureiffel.paris/en",
-                    "image_url": "https://images.unsplash.com/photo-1543349689-9a4d426bee8e?q=80&w=1000&auto=format&fit=crop",
-                    "location": "Paris, France"
-                },
-                {
-                    "name": "Louvre Museum",
-                    "description": "World's largest art museum and home to the Mona Lisa.",
-                    "category": "museums",
-                    "price_level": "medium",
-                    "rating": 4.8,
-                    "reviews_count": 1200,
-                    "url": "https://www.louvre.fr/en",
-                    "image_url": "https://images.unsplash.com/photo-1565099824688-e93eb20fe622?q=80&w=1000&auto=format&fit=crop",
-                    "location": "Paris, France"
-                },
-                {
-                    "name": "Seine River Cruise",
-                    "description": "Relaxing boat tour along the Seine River with views of Paris landmarks.",
-                    "category": "tours",
-                    "price_level": "medium",
-                    "rating": 4.6,
-                    "reviews_count": 950,
-                    "url": "https://www.bateauxparisiens.com/en.html",
-                    "image_url": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?q=80&w=1000&auto=format&fit=crop",
-                    "location": "Paris, France"
-                }
-            ]
-        
-        # Return empty data for other files
-        return []
-    except Exception as e:
-        logger.error(f"Error loading mock data: {str(e)}")
+        os.makedirs("api/mock_data", exist_ok=True)
+        # Return empty data
         return []
 
 # Routes
@@ -371,271 +119,28 @@ async def search_airbnb_listings(request: AirbnbListingRequest):
     """
     logger.info(f"Searching Airbnb listings for {request.location}")
     
-    # Get the base URL for our API
-    base_url = "https://trip-planner-gpt-airbnb.onrender.com"
-    
     try:
         # Try to use RapidAPI if key is available and not a placeholder
         if RAPIDAPI_KEY and RAPIDAPI_KEY != "your_valid_rapidapi_key_here":
             try:
                 listings = await search_airbnb_rapidapi(request)
-                
-                # Update the URLs to use our redirect endpoint
-                for listing in listings:
-                    listing_id = listing.get("id", "")
-                    if listing_id:
-                        listing["url"] = f"{base_url}/redirect/airbnb/{listing_id}"
-                
                 return listings
             except Exception as api_error:
                 logger.error(f"RapidAPI search failed: {str(api_error)}")
                 logger.info("Falling back to mock data.")
-                return search_airbnb_mock(request, base_url)
+                return search_airbnb_mock(request)
         else:
             logger.info("No valid RapidAPI key found. Using mock data.")
-            return search_airbnb_mock(request, base_url)
+            return search_airbnb_mock(request)
     
     except Exception as e:
         logger.error(f"Error searching Airbnb listings: {str(e)}")
         # Always try to return mock data as a last resort
         try:
-            return search_airbnb_mock(request, base_url)
+            return search_airbnb_mock(request)
         except Exception as mock_error:
             logger.error(f"Mock data fallback also failed: {str(mock_error)}")
             raise HTTPException(status_code=500, detail="Failed to retrieve Airbnb listings")
-
-async def search_airbnb_rapidapi(request: AirbnbListingRequest):
-    """
-    Search for Airbnb listings using RapidAPI.
-    Falls back to mock data if the API call fails.
-    """
-    url = "https://airbnb13.p.rapidapi.com/search-location"
-    
-    # Get the base URL for our API
-    base_url = "https://trip-planner-gpt-airbnb.onrender.com"
-    
-    # Map our room types to RapidAPI's room types
-    room_type_map = {
-        "entire_home": "entire_home",
-        "private_room": "private_room",
-        "shared_room": "shared_room",
-        "hotel_room": "hotel_room"
-    }
-    
-    # Prepare query parameters
-    query_params = {
-        "location": request.location,
-        "checkin": request.check_in,
-        "checkout": request.check_out,
-        "adults": request.adults,
-        "children": 0,
-        "infants": 0,
-        "pets": 0,
-        "page": 1,
-        "currency": "USD"
-    }
-    
-    # Add optional parameters if provided
-    if request.price_min is not None:
-        query_params["price_min"] = request.price_min
-    if request.price_max is not None:
-        query_params["price_max"] = request.price_max
-    if request.room_type and request.room_type in room_type_map:
-        query_params["room_type"] = room_type_map[request.room_type]
-    
-    headers = {
-        "X-RapidAPI-Key": RAPIDAPI_KEY,
-        "X-RapidAPI-Host": "airbnb13.p.rapidapi.com"
-    }
-    
-    try:
-        # Only attempt the API call if we have a RapidAPI key
-        if not RAPIDAPI_KEY or RAPIDAPI_KEY == "your_valid_rapidapi_key_here":
-            logger.warning("No valid RAPIDAPI_KEY provided. Using mock data.")
-            raise Exception("No valid RAPIDAPI_KEY provided")
-            
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url, params=query_params, headers=headers)
-            
-            if response.status_code != 200:
-                error_message = f"RapidAPI error: {response.status_code}"
-                try:
-                    error_data = response.json()
-                    if isinstance(error_data, dict) and "message" in error_data:
-                        error_message += f" - {error_data['message']}"
-                except:
-                    error_message += f" - {response.text}"
-                
-                logger.error(error_message)
-                raise Exception(error_message)
-            
-            data = response.json()
-            
-            # Transform the API response to match our data model
-            listings = []
-            for item in data.get("results", []):
-                try:
-                    # Make sure item is a dictionary before trying to access its properties
-                    if not isinstance(item, dict):
-                        logger.error(f"Expected dictionary but got {type(item)}: {item}")
-                        continue
-                        
-                    # Safely extract values with proper type checking
-                    item_id = str(item.get("id", "")) if item.get("id") is not None else ""
-                    name = item.get("name", "") if isinstance(item.get("name"), str) else ""
-                    
-                    # Safely handle nested structures
-                    images = item.get("images", []) if isinstance(item.get("images"), list) else []
-                    image_url = ""
-                    if images and isinstance(images[0], dict):
-                        image_url = images[0].get("picture", "")
-                    
-                    # Safely handle price information
-                    price = item.get("price", {}) if isinstance(item.get("price"), dict) else {}
-                    price_per_night = 0.0
-                    total_price = 0.0
-                    if isinstance(price, dict):
-                        price_per_night = float(price.get("rate", 0)) if price.get("rate") is not None else 0.0
-                        total_price = float(price.get("total", 0)) if price.get("total") is not None else 0.0
-                    
-                    # Create a URL with our redirect endpoint
-                    listing_url = f"{base_url}/redirect/airbnb/{item_id}"
-                    
-                    listing = {
-                        "id": item_id,
-                        "name": name,
-                        "url": listing_url if item_id else "",
-                        "image_url": image_url,
-                        "price_per_night": price_per_night,
-                        "total_price": total_price,
-                        "rating": float(item.get("rating", 0)) if item.get("rating") is not None else 0.0,
-                        "reviews_count": int(item.get("reviewsCount", 0)) if item.get("reviewsCount") is not None else 0,
-                        "room_type": item.get("type", "") if isinstance(item.get("type"), str) else "",
-                        "beds": int(item.get("beds", 1)) if item.get("beds") is not None else 1,
-                        "bedrooms": int(item.get("bedrooms", 1)) if item.get("bedrooms") is not None else 1,
-                        "bathrooms": float(item.get("bathrooms", 1.0)) if item.get("bathrooms") is not None else 1.0,
-                        "amenities": item.get("previewAmenities", []) if isinstance(item.get("previewAmenities"), list) else [],
-                        "location": request.location,
-                        "superhost": bool(item.get("isSuperhost", False)) if item.get("isSuperhost") is not None else False
-                    }
-                    listings.append(listing)
-                except Exception as e:
-                    logger.error(f"Error processing listing: {str(e)}")
-                    continue
-            
-            return listings
-    except Exception as e:
-        logger.error(f"Error in RapidAPI request: {str(e)}")
-        # Fall back to mock data
-        return search_airbnb_mock(request, base_url)
-
-def search_airbnb_mock(request: AirbnbListingRequest, base_url: str):
-    """
-    Search for Airbnb listings using mock data.
-    """
-    logger.info(f"Using mock data for Airbnb listings in {request.location}")
-    
-    # Load mock data
-    mock_listings = load_mock_data("airbnb_listings.json")
-    logger.info(f"Loaded {len(mock_listings)} mock listings")
-    
-    # If mock data is empty, create some sample data
-    if not mock_listings:
-        logger.info("No mock listings found, creating sample data")
-        mock_listings = [
-            {
-                "id": "12345",
-                "name": "Luxury Beachfront Villa",
-                "url": f"{base_url}/redirect/airbnb/12345",  # Use our redirect endpoint
-                "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
-                "price_per_night": 250.0,
-                "total_price": 1750.0,
-                "rating": 4.9,
-                "reviews_count": 120,
-                "room_type": "entire_home",
-                "beds": 3,
-                "bedrooms": 2,
-                "bathrooms": 2.5,
-                "amenities": ["Pool", "Wifi", "Kitchen", "Air conditioning"],
-                "location": request.location,
-                "superhost": True
-            },
-            {
-                "id": "67890",
-                "name": "Cozy Downtown Apartment",
-                "url": f"{base_url}/redirect/airbnb/67890",  # Use our redirect endpoint
-                "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
-                "price_per_night": 120.0,
-                "total_price": 840.0,
-                "rating": 4.7,
-                "reviews_count": 85,
-                "room_type": "entire_home",
-                "beds": 1,
-                "bedrooms": 1,
-                "bathrooms": 1.0,
-                "amenities": ["Wifi", "Kitchen", "Washer"],
-                "location": request.location,
-                "superhost": False
-            },
-            {
-                "id": "24680",
-                "name": "Mountain Retreat Cabin",
-                "url": f"{base_url}/redirect/airbnb/24680",  # Use our redirect endpoint
-                "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
-                "price_per_night": 180.0,
-                "total_price": 1260.0,
-                "rating": 4.8,
-                "reviews_count": 95,
-                "room_type": "entire_home",
-                "beds": 2,
-                "bedrooms": 2,
-                "bathrooms": 1.5,
-                "amenities": ["Fireplace", "Hot tub", "Wifi", "Kitchen"],
-                "location": request.location,
-                "superhost": True
-            }
-        ]
-        
-        # Save mock data for future use
-        try:
-            import os
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            mock_data_dir = os.path.join(base_dir, "api", "mock_data")
-            os.makedirs(mock_data_dir, exist_ok=True)
-            mock_data_path = os.path.join(mock_data_dir, "airbnb_listings.json")
-            logger.info(f"Saving sample mock data to: {mock_data_path}")
-            
-            with open(mock_data_path, "w") as f:
-                json.dump(mock_listings, f)
-            logger.info("Successfully saved sample mock data")
-        except Exception as e:
-            logger.error(f"Error saving mock data: {str(e)}")
-    else:
-        # Update URLs in existing mock data to use our redirect endpoint
-        logger.info("Updating URLs in existing mock data")
-        for listing in mock_listings:
-            listing_id = listing.get("id", "")
-            if listing_id:
-                listing["url"] = f"{base_url}/redirect/airbnb/{listing_id}"
-            # IMPORTANT: Always update the location to match the requested location
-            # This ensures listings will be found regardless of their original location
-            listing["location"] = request.location
-    
-    # Filter by room type if specified
-    if request.room_type:
-        logger.info(f"Filtering by room type: {request.room_type}")
-        mock_listings = [listing for listing in mock_listings if listing["room_type"] == request.room_type]
-    
-    # Filter by price range if specified
-    if request.price_min is not None:
-        logger.info(f"Filtering by minimum price: {request.price_min}")
-        mock_listings = [listing for listing in mock_listings if listing["price_per_night"] >= request.price_min]
-    if request.price_max is not None:
-        logger.info(f"Filtering by maximum price: {request.price_max}")
-        mock_listings = [listing for listing in mock_listings if listing["price_per_night"] <= request.price_max]
-    
-    logger.info(f"Returning {len(mock_listings)} mock listings")
-    return mock_listings
 
 @app.post("/attractions/search", response_model=List[Attraction])
 async def search_attractions(request: AttractionRequest):
@@ -803,13 +308,11 @@ async def get_listing_image(listing_id: str):
                             logger.info(f"Found image URL (str): {image_url}")
                         
                         if image_url:
-                            name = item.get("name", "Beautiful Airbnb Listing")
-                            name_slug = name.lower().replace(" ", "-")
                             listing = {
                                 "id": listing_id,
-                                "name": name,
+                                "name": item.get("name", "Beautiful Airbnb Listing"),
                                 "image_url": image_url,
-                                "url": f"https://airbnb.com/h/{name_slug}-{listing_id}"
+                                "url": f"https://www.airbnb.com/rooms/{listing_id}"
                             }
         except Exception as e:
             logger.error(f"Error fetching listing from RapidAPI: {str(e)}")
@@ -858,7 +361,7 @@ async def get_listings_images(request: AirbnbListingRequest):
     """
     logger.info(f"Getting images for Airbnb listings in {request.location}")
     
-    # Get listings based on the request
+    # Get listings using the same search function that uses RapidAPI or falls back to mock data
     listings = await search_airbnb_listings(request)
     
     # Limit to top 3 listings to avoid overwhelming the chat
@@ -880,11 +383,7 @@ async def get_listings_images(request: AirbnbListingRequest):
                 "image_url": image_url
             })
     
-    # Log the data we're returning for debugging
     logger.info(f"Returning {len(formatted_listings)} listing images")
-    for i, listing in enumerate(formatted_listings):
-        logger.info(f"Image {i+1}: {listing['listing']['name']} - {listing['image_url']}")
-    
     return {
         "listings": formatted_listings,
         "count": len(formatted_listings)
@@ -908,99 +407,245 @@ async def test_image():
         "message": "If you can see the image above, image display is working correctly."
     }
 
-@app.get("/debug/files")
-async def debug_files():
+async def search_airbnb_rapidapi(request: AirbnbListingRequest):
     """
-    Debug endpoint to check the file system on the server.
+    Search for Airbnb listings using RapidAPI.
+    Falls back to mock data if the API call fails.
     """
-    logger.info("Checking file system")
+    url = "https://airbnb13.p.rapidapi.com/search-location"
+    
+    # Map our room types to RapidAPI's room types
+    room_type_map = {
+        "entire_home": "entire_home",
+        "private_room": "private_room",
+        "shared_room": "shared_room",
+        "hotel_room": "hotel_room"
+    }
+    
+    # Prepare query parameters
+    query_params = {
+        "location": request.location,
+        "checkin": request.check_in,
+        "checkout": request.check_out,
+        "adults": request.adults,
+        "children": 0,
+        "infants": 0,
+        "pets": 0,
+        "page": 1,
+        "currency": "USD"
+    }
+    
+    # Add optional parameters if provided
+    if request.price_min is not None:
+        query_params["price_min"] = request.price_min
+    if request.price_max is not None:
+        query_params["price_max"] = request.price_max
+    if request.room_type and request.room_type in room_type_map:
+        query_params["room_type"] = room_type_map[request.room_type]
+    
+    headers = {
+        "X-RapidAPI-Key": RAPIDAPI_KEY,
+        "X-RapidAPI-Host": "airbnb13.p.rapidapi.com"
+    }
     
     try:
-        import os
-        
-        # Get the base directory
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        logger.info(f"Base directory: {base_dir}")
-        
-        # Check if the mock data directory exists
-        mock_data_dir = os.path.join(base_dir, "api", "mock_data")
-        mock_data_exists = os.path.exists(mock_data_dir)
-        logger.info(f"Mock data directory exists: {mock_data_exists}")
-        
-        # List files in the mock data directory if it exists
-        mock_data_files = []
-        if mock_data_exists:
-            mock_data_files = os.listdir(mock_data_dir)
-            logger.info(f"Files in mock data directory: {mock_data_files}")
-        
-        # Check if the airbnb_listings.json file exists
-        airbnb_listings_path = os.path.join(mock_data_dir, "airbnb_listings.json")
-        airbnb_listings_exists = os.path.exists(airbnb_listings_path)
-        logger.info(f"airbnb_listings.json exists: {airbnb_listings_exists}")
-        
-        # Get the size of the airbnb_listings.json file if it exists
-        airbnb_listings_size = 0
-        if airbnb_listings_exists:
-            airbnb_listings_size = os.path.getsize(airbnb_listings_path)
-            logger.info(f"airbnb_listings.json size: {airbnb_listings_size} bytes")
-        
-        # Try to read the airbnb_listings.json file if it exists
-        airbnb_listings_content = []
-        if airbnb_listings_exists:
-            try:
-                with open(airbnb_listings_path, "r") as f:
-                    airbnb_listings_content = json.load(f)
-                logger.info(f"Successfully read airbnb_listings.json: {len(airbnb_listings_content)} items")
-            except Exception as e:
-                logger.error(f"Error reading airbnb_listings.json: {str(e)}")
-        
-        # Return the debug information
-        return {
-            "base_dir": base_dir,
-            "mock_data_dir": mock_data_dir,
-            "mock_data_exists": mock_data_exists,
-            "mock_data_files": mock_data_files,
-            "airbnb_listings_exists": airbnb_listings_exists,
-            "airbnb_listings_size": airbnb_listings_size,
-            "airbnb_listings_count": len(airbnb_listings_content)
-        }
+        # Only attempt the API call if we have a RapidAPI key
+        if not RAPIDAPI_KEY or RAPIDAPI_KEY == "your_valid_rapidapi_key_here":
+            logger.warning("No valid RAPIDAPI_KEY provided. Using mock data.")
+            raise Exception("No valid RAPIDAPI_KEY provided")
+            
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, params=query_params, headers=headers)
+            
+            if response.status_code != 200:
+                error_message = f"RapidAPI error: {response.status_code}"
+                try:
+                    error_data = response.json()
+                    if isinstance(error_data, dict) and "message" in error_data:
+                        error_message += f" - {error_data['message']}"
+                except:
+                    error_message += f" - {response.text}"
+                
+                logger.error(error_message)
+                raise Exception(error_message)
+            
+            data = response.json()
+            
+            # Transform the API response to match our data model
+            listings = []
+            for item in data.get("results", []):
+                try:
+                    # Make sure item is a dictionary before trying to access its properties
+                    if not isinstance(item, dict):
+                        logger.error(f"Expected dictionary but got {type(item)}: {item}")
+                        continue
+                        
+                    # Safely extract values with proper type checking
+                    item_id = str(item.get("id", "")) if item.get("id") is not None else ""
+                    name = item.get("name", "") if isinstance(item.get("name"), str) else ""
+                    
+                    # Safely handle nested structures
+                    images = item.get("images", []) if isinstance(item.get("images"), list) else []
+                    image_url = ""
+                    if images and isinstance(images[0], dict):
+                        image_url = images[0].get("picture", "")
+                    
+                    # Safely handle price information
+                    price = item.get("price", {}) if isinstance(item.get("price"), dict) else {}
+                    price_per_night = 0.0
+                    total_price = 0.0
+                    if isinstance(price, dict):
+                        price_per_night = float(price.get("rate", 0)) if price.get("rate") is not None else 0.0
+                        total_price = float(price.get("total", 0)) if price.get("total") is not None else 0.0
+                    
+                    # Create a direct URL to Airbnb
+                    # Format: https://www.airbnb.com/rooms/ID?adults=X&check_in=YYYY-MM-DD&check_out=YYYY-MM-DD
+                    airbnb_url = f"https://www.airbnb.com/rooms/{item_id}?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}"
+                    
+                    # Check if the API already returned a URL with source_impression_id
+                    api_url = item.get("url", "")
+                    if api_url and "source_impression_id=" in api_url:
+                        import re
+                        match = re.search(r'source_impression_id=([^&]+)', api_url)
+                        if match:
+                            source_impression_id = match.group(1)
+                            airbnb_url += f"&source_impression_id={source_impression_id}"
+                    
+                    listing = {
+                        "id": item_id,
+                        "name": name,
+                        "url": airbnb_url if item_id else "",
+                        "image_url": image_url,
+                        "price_per_night": price_per_night,
+                        "total_price": total_price,
+                        "rating": float(item.get("rating", 0)) if item.get("rating") is not None else 0.0,
+                        "reviews_count": int(item.get("reviewsCount", 0)) if item.get("reviewsCount") is not None else 0,
+                        "room_type": item.get("type", "") if isinstance(item.get("type"), str) else "",
+                        "beds": int(item.get("beds", 1)) if item.get("beds") is not None else 1,
+                        "bedrooms": int(item.get("bedrooms", 1)) if item.get("bedrooms") is not None else 1,
+                        "bathrooms": float(item.get("bathrooms", 1.0)) if item.get("bathrooms") is not None else 1.0,
+                        "amenities": item.get("previewAmenities", []) if isinstance(item.get("previewAmenities"), list) else [],
+                        "location": request.location,
+                        "superhost": bool(item.get("isSuperhost", False)) if item.get("isSuperhost") is not None else False
+                    }
+                    listings.append(listing)
+                except Exception as e:
+                    logger.error(f"Error processing listing: {str(e)}")
+                    continue
+            
+            return listings
     except Exception as e:
-        logger.error(f"Error in debug endpoint: {str(e)}")
-        return {"error": str(e)}
+        logger.error(f"Error in RapidAPI request: {str(e)}")
+        # Fall back to mock data
+        return search_airbnb_mock(request)
 
-@app.get("/debug/info")
-async def debug_info():
+def search_airbnb_mock(request: AirbnbListingRequest):
     """
-    Debug endpoint to check the server environment and configuration.
+    Search for Airbnb listings using mock data.
     """
-    logger.info("Checking server environment and configuration")
+    logger.info(f"Using mock data for Airbnb listings in {request.location}")
     
-    try:
-        import os
-        import sys
-        import platform
+    # Load mock data
+    mock_listings = load_mock_data("airbnb_listings.json")
+    logger.info(f"Loaded {len(mock_listings)} mock listings")
+    
+    # If mock data is empty, create some sample data
+    if not mock_listings:
+        logger.info("No mock listings found, creating sample data")
+        mock_listings = [
+            {
+                "id": "12345",
+                "name": "Luxury Beachfront Villa",
+                "url": f"https://www.airbnb.com/rooms/12345?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
+                "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
+                "price_per_night": 250.0,
+                "total_price": 1750.0,
+                "rating": 4.9,
+                "reviews_count": 120,
+                "room_type": "entire_home",
+                "beds": 3,
+                "bedrooms": 2,
+                "bathrooms": 2.5,
+                "amenities": ["Pool", "Wifi", "Kitchen", "Air conditioning"],
+                "location": request.location,
+                "superhost": True
+            },
+            {
+                "id": "67890",
+                "name": "Cozy Downtown Apartment",
+                "url": f"https://www.airbnb.com/rooms/67890?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
+                "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
+                "price_per_night": 120.0,
+                "total_price": 840.0,
+                "rating": 4.7,
+                "reviews_count": 85,
+                "room_type": "entire_home",
+                "beds": 1,
+                "bedrooms": 1,
+                "bathrooms": 1.0,
+                "amenities": ["Wifi", "Kitchen", "Washer"],
+                "location": request.location,
+                "superhost": False
+            },
+            {
+                "id": "24680",
+                "name": "Mountain Retreat Cabin",
+                "url": f"https://www.airbnb.com/rooms/24680?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
+                "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
+                "price_per_night": 180.0,
+                "total_price": 1260.0,
+                "rating": 4.8,
+                "reviews_count": 95,
+                "room_type": "entire_home",
+                "beds": 2,
+                "bedrooms": 2,
+                "bathrooms": 1.5,
+                "amenities": ["Fireplace", "Hot tub", "Wifi", "Kitchen"],
+                "location": request.location,
+                "superhost": True
+            }
+        ]
         
-        # Get environment information
-        env_info = {
-            "python_version": sys.version,
-            "platform": platform.platform(),
-            "environment": os.environ.get("ENVIRONMENT", "development"),
-            "rapidapi_key_set": bool(RAPIDAPI_KEY),
-            "working_directory": os.getcwd(),
-            "files_in_current_dir": os.listdir(),
-            "api_dir_exists": os.path.exists("api"),
-            "mock_data_dir_exists": os.path.exists("api/mock_data") if os.path.exists("api") else False
-        }
-        
-        # Check if the mock data directory exists
-        if env_info["mock_data_dir_exists"]:
-            env_info["mock_data_files"] = os.listdir("api/mock_data")
-        
-        logger.info(f"Debug info: {env_info}")
-        return env_info
-    except Exception as e:
-        logger.error(f"Error in debug endpoint: {str(e)}")
-        return {"error": str(e)}
+        # Save mock data for future use
+        try:
+            import os
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            mock_data_dir = os.path.join(base_dir, "api", "mock_data")
+            os.makedirs(mock_data_dir, exist_ok=True)
+            mock_data_path = os.path.join(mock_data_dir, "airbnb_listings.json")
+            logger.info(f"Saving sample mock data to: {mock_data_path}")
+            
+            with open(mock_data_path, "w") as f:
+                json.dump(mock_listings, f)
+            logger.info("Successfully saved sample mock data")
+        except Exception as e:
+            logger.error(f"Error saving mock data: {str(e)}")
+    else:
+        # Update URLs in existing mock data to use direct Airbnb URLs
+        logger.info("Updating URLs in existing mock data")
+        for listing in mock_listings:
+            listing_id = listing.get("id", "")
+            if listing_id:
+                listing["url"] = f"https://www.airbnb.com/rooms/{listing_id}?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}"
+            # IMPORTANT: Always update the location to match the requested location
+            # This ensures listings will be found regardless of their original location
+            listing["location"] = request.location
+    
+    # Filter by room type if specified
+    if request.room_type:
+        logger.info(f"Filtering by room type: {request.room_type}")
+        mock_listings = [listing for listing in mock_listings if listing["room_type"] == request.room_type]
+    
+    # Filter by price range if specified
+    if request.price_min is not None:
+        logger.info(f"Filtering by minimum price: {request.price_min}")
+        mock_listings = [listing for listing in mock_listings if listing["price_per_night"] >= request.price_min]
+    if request.price_max is not None:
+        logger.info(f"Filtering by maximum price: {request.price_max}")
+        mock_listings = [listing for listing in mock_listings if listing["price_per_night"] <= request.price_max]
+    
+    logger.info(f"Returning {len(mock_listings)} mock listings")
+    return mock_listings
 
 if __name__ == "__main__":
     import uvicorn
