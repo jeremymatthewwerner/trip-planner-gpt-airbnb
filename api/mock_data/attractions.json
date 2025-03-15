@@ -1,0 +1,57 @@
+[
+  {
+    "name": "Central Park",
+    "description": "Iconic urban park with walking paths, a zoo, and boat rentals.",
+    "category": "outdoor",
+    "price_level": "low",
+    "rating": 4.8,
+    "reviews_count": 1200,
+    "url": "https://www.centralparknyc.org/",
+    "image_url": "https://example.com/central_park.jpg",
+    "location": "New York, NY"
+  },
+  {
+    "name": "Metropolitan Museum of Art",
+    "description": "One of the world's largest and finest art museums.",
+    "category": "museums",
+    "price_level": "medium",
+    "rating": 4.9,
+    "reviews_count": 950,
+    "url": "https://www.metmuseum.org/",
+    "image_url": "https://example.com/met.jpg",
+    "location": "New York, NY"
+  },
+  {
+    "name": "Le Bernardin",
+    "description": "Upscale French seafood restaurant with prix fixe menus.",
+    "category": "food",
+    "price_level": "high",
+    "rating": 4.7,
+    "reviews_count": 780,
+    "url": "https://www.le-bernardin.com/",
+    "image_url": "https://example.com/le_bernardin.jpg",
+    "location": "New York, NY"
+  },
+  {
+    "name": "South Beach",
+    "description": "Iconic beach known for its white sand, turquoise waters, and Art Deco architecture.",
+    "category": "outdoor",
+    "price_level": "low",
+    "rating": 4.6,
+    "reviews_count": 1500,
+    "url": "https://www.miamiandbeaches.com/places-to-see/south-beach",
+    "image_url": "https://example.com/south_beach.jpg",
+    "location": "Miami, FL"
+  },
+  {
+    "name": "Freedom Trail",
+    "description": "A 2.5-mile-long path through downtown Boston that passes by 16 locations significant to the history of the United States.",
+    "category": "history",
+    "price_level": "low",
+    "rating": 4.8,
+    "reviews_count": 950,
+    "url": "https://www.thefreedomtrail.org/",
+    "image_url": "https://example.com/freedom_trail.jpg",
+    "location": "Boston, MA"
+  }
+] 
