@@ -371,13 +371,16 @@ async def search_airbnb_listings(request: AirbnbListingRequest):
     """
     logger.info(f"Searching Airbnb listings for {request.location}")
     
+    # Get the base URL for our API
+    base_url = "https://trip-planner-gpt-airbnb.onrender.com"
+    
     # ALWAYS return hardcoded data directly for reliability
     logger.info("Returning hardcoded sample data directly")
     hardcoded_listings = [
         {
-            "id": "12345",
+            "id": "52676123",  # Real Airbnb listing ID
             "name": "Luxury Beachfront Villa",
-            "url": "https://airbnb.com/h/luxury-beachfront-villa-12345",  # Using h/ format which is more resilient
+            "url": f"{base_url}/redirect/airbnb/52676123",  # Use our redirect endpoint with real ID
             "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
             "price_per_night": 250.0,
             "total_price": 1750.0,
@@ -392,9 +395,9 @@ async def search_airbnb_listings(request: AirbnbListingRequest):
             "superhost": True
         },
         {
-            "id": "67890",
+            "id": "52676123",  # Using the same real ID for testing
             "name": "Cozy Downtown Apartment",
-            "url": "https://airbnb.com/h/cozy-downtown-apartment-67890",  # Using h/ format which is more resilient
+            "url": f"{base_url}/redirect/airbnb/52676123",  # Use our redirect endpoint with real ID
             "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
             "price_per_night": 120.0,
             "total_price": 840.0,
@@ -409,9 +412,9 @@ async def search_airbnb_listings(request: AirbnbListingRequest):
             "superhost": False
         },
         {
-            "id": "24680",
+            "id": "52676123",  # Using the same real ID for testing
             "name": "Mountain Retreat Cabin",
-            "url": "https://airbnb.com/h/mountain-retreat-cabin-24680",  # Using h/ format which is more resilient
+            "url": f"{base_url}/redirect/airbnb/52676123",  # Use our redirect endpoint with real ID
             "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
             "price_per_night": 180.0,
             "total_price": 1260.0,
@@ -907,13 +910,16 @@ async def get_listings_images(request: AirbnbListingRequest):
     """
     logger.info(f"Getting images for Airbnb listings in {request.location}")
     
+    # Get the base URL for our API
+    base_url = "https://trip-planner-gpt-airbnb.onrender.com"
+    
     # ALWAYS return hardcoded data directly for reliability
     logger.info("Returning hardcoded sample data directly")
     hardcoded_listings = [
         {
-            "id": "12345",
+            "id": "52676123",  # Real Airbnb listing ID
             "name": "Luxury Beachfront Villa",
-            "url": "https://airbnb.com/h/luxury-beachfront-villa-12345",  # Using h/ format which is more resilient
+            "url": f"{base_url}/redirect/airbnb/52676123",  # Use our redirect endpoint with real ID
             "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
             "price_per_night": 250.0,
             "total_price": 1750.0,
@@ -928,9 +934,9 @@ async def get_listings_images(request: AirbnbListingRequest):
             "superhost": True
         },
         {
-            "id": "67890",
+            "id": "52676123",  # Using the same real ID for testing
             "name": "Cozy Downtown Apartment",
-            "url": "https://airbnb.com/h/cozy-downtown-apartment-67890",  # Using h/ format which is more resilient
+            "url": f"{base_url}/redirect/airbnb/52676123",  # Use our redirect endpoint with real ID
             "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
             "price_per_night": 120.0,
             "total_price": 840.0,
@@ -945,9 +951,9 @@ async def get_listings_images(request: AirbnbListingRequest):
             "superhost": False
         },
         {
-            "id": "24680",
+            "id": "52676123",  # Using the same real ID for testing
             "name": "Mountain Retreat Cabin",
-            "url": "https://airbnb.com/h/mountain-retreat-cabin-24680",  # Using h/ format which is more resilient
+            "url": f"{base_url}/redirect/airbnb/52676123",  # Use our redirect endpoint with real ID
             "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
             "price_per_night": 180.0,
             "total_price": 1260.0,
