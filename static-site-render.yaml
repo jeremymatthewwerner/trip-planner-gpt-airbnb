@@ -3,7 +3,7 @@ services:
     name: trip-planner-privacy-policy
     runtime: static
     buildCommand: echo "Static site, no build needed"
-    staticPublishPath: ./
+    staticPublishPath: ./public
     routes:
       - type: rewrite
         source: /*
