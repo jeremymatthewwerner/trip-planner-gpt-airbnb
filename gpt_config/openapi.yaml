@@ -1,0 +1,263 @@
+openapi: 3.1.0
+info:
+  title: Trip Planner API
+  description: API for searching Airbnb listings, attractions, and creating itineraries
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:8000
+    description: Local development server
+  - url: https://api-url-after-deployment.com
+    description: Production server
+paths:
+  /airbnb/search:
+    post:
+      summary: Search for Airbnb listings
+      description: Search for Airbnb listings based on location, dates, and other criteria
+      operationId: searchAirbnbListings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - location
+                - check_in
+                - check_out
+                - adults
+              properties:
+                location:
+                  type: string
+                  description: Destination city or area
+                  example: "Paris, France"
+                check_in:
+                  type: string
+                  format: date
+                  description: Check-in date (YYYY-MM-DD)
+                  example: "2023-12-15"
+                check_out:
+                  type: string
+                  format: date
+                  description: Check-out date (YYYY-MM-DD)
+                  example: "2023-12-20"
+                adults:
+                  type: integer
+                  description: Number of adult guests
+                  example: 2
+                price_min:
+                  type: integer
+                  description: Minimum price per night (USD)
+                  example: 50
+                price_max:
+                  type: integer
+                  description: Maximum price per night (USD)
+                  example: 300
+                room_type:
+                  type: string
+                  description: Type of accommodation
+                  enum: [entire_home, private_room, shared_room, hotel_room]
+                  example: "entire_home"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AirbnbListing'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /attractions/search:
+    post:
+      summary: Search for attractions
+      description: Search for attractions and activities at a destination
+      operationId: searchAttractions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - location
+              properties:
+                location:
+                  type: string
+                  description: Destination city or area
+                  example: "Paris, France"
+                category:
+                  type: string
+                  description: Type of attraction
+                  example: "museums"
+                budget:
+                  type: string
+                  description: Budget level
+                  enum: [low, medium, high]
+                  example: "medium"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attraction'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /itinerary/create:
+    post:
+      summary: Create a trip itinerary
+      description: Create a daily itinerary for the trip
+      operationId: createItinerary
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - location
+                - start_date
+                - end_date
+              properties:
+                location:
+                  type: string
+                  description: Destination city or area
+                  example: "Paris, France"
+                start_date:
+                  type: string
+                  format: date
+                  description: Start date (YYYY-MM-DD)
+                  example: "2023-12-15"
+                end_date:
+                  type: string
+                  format: date
+                  description: End date (YYYY-MM-DD)
+                  example: "2023-12-20"
+                interests:
+                  type: array
+                  items:
+                    type: string
+                  description: List of interests
+                  example: ["art", "history", "food"]
+                pace:
+                  type: string
+                  description: Preferred pace of the trip
+                  enum: [relaxed, moderate, busy]
+                  example: "moderate"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Itinerary'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    AirbnbListing:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        url:
+          type: string
+        image_url:
+          type: string
+        price_per_night:
+          type: number
+        total_price:
+          type: number
+        rating:
+          type: number
+        reviews_count:
+          type: integer
+        room_type:
+          type: string
+        beds:
+          type: integer
+        bedrooms:
+          type: integer
+        bathrooms:
+          type: number
+        amenities:
+          type: array
+          items:
+            type: string
+        location:
+          type: string
+        superhost:
+          type: boolean
+    Attraction:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        price_level:
+          type: string
+        rating:
+          type: number
+        reviews_count:
+          type: integer
+        url:
+          type: string
+        image_url:
+          type: string
+        location:
+          type: string
+    ItineraryDay:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        activities:
+          type: array
+          items:
+            type: object
+            properties:
+              time:
+                type: string
+              name:
+                type: string
+              description:
+                type: string
+              category:
+                type: string
+              price_level:
+                type: string
+    Itinerary:
+      type: object
+      properties:
+        location:
+          type: string
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItineraryDay'
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string 
