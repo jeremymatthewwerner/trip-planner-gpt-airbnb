@@ -214,9 +214,28 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
                         price_per_night = float(price.get("rate", 0)) if price.get("rate") is not None else 0.0
                         total_price = float(price.get("total", 0)) if price.get("total") is not None else 0.0
                     
-                    # Create a URL with date and guest parameters
+                    # Create a URL with date and guest parameters using Airbnb's actual URL format
+                    # Format: https://www.airbnb.com/rooms/ID?adults=X&check_in=YYYY-MM-DD&check_out=YYYY-MM-DD
+                    # Preserve any existing source_impression_id if present in the API response
                     base_url = f"https://www.airbnb.com/rooms/{item_id}"
-                    url_with_params = f"{base_url}?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}"
+                    
+                    # Check if the API already returned a URL with parameters
+                    api_url = item.get("url", "")
+                    source_impression_id = ""
+                    
+                    # Extract source_impression_id from API URL if present
+                    if api_url and "source_impression_id=" in api_url:
+                        import re
+                        match = re.search(r'source_impression_id=([^&]+)', api_url)
+                        if match:
+                            source_impression_id = match.group(1)
+                    
+                    # Build the URL with our parameters
+                    url_with_params = f"{base_url}?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}"
+                    
+                    # Add source_impression_id if we found one
+                    if source_impression_id:
+                        url_with_params += f"&source_impression_id={source_impression_id}"
                     
                     listing = {
                         "id": item_id,
@@ -261,7 +280,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
             {
                 "id": "12345",
                 "name": "Luxury Beachfront Villa",
-                "url": f"https://www.airbnb.com/rooms/12345?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}",
+                "url": f"https://www.airbnb.com/rooms/12345?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
                 "image_url": "https://example.com/image1.jpg",
                 "price_per_night": 250.0,
                 "total_price": 1750.0,
@@ -278,7 +297,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
             {
                 "id": "67890",
                 "name": "Cozy Downtown Apartment",
-                "url": f"https://www.airbnb.com/rooms/67890?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}",
+                "url": f"https://www.airbnb.com/rooms/67890?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
                 "image_url": "https://example.com/image2.jpg",
                 "price_per_night": 120.0,
                 "total_price": 840.0,
@@ -295,7 +314,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
             {
                 "id": "24680",
                 "name": "Private Room in Historic Home",
-                "url": f"https://www.airbnb.com/rooms/24680?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}",
+                "url": f"https://www.airbnb.com/rooms/24680?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
                 "image_url": "https://example.com/image3.jpg",
                 "price_per_night": 75.0,
                 "total_price": 525.0,
@@ -320,7 +339,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
         for listing in mock_listings:
             listing_id = listing.get("id", "")
             if listing_id:
-                listing["url"] = f"https://www.airbnb.com/rooms/{listing_id}?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}"
+                listing["url"] = f"https://www.airbnb.com/rooms/{listing_id}?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}"
             listing["location"] = request.location
     
     # Filter by room type if specified
