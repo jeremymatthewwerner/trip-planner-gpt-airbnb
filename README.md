@@ -2,6 +2,11 @@
 
 A custom OpenAI GPT that helps users plan trips with personalized itineraries and Airbnb accommodation recommendations.
 
+## Try It Out
+
+You can try the Vacation Rental Trip Planner GPT here:
+[Vacation Rental Trip Planner GPT](https://chatgpt.com/g/g-67d4c4b0ed64819195294fda4747b6ca-vacation-rental-trip-planner/c/67d4ccba-3c10-800c-857f-79dfcc4b537c)
+
 ## Overview
 
 This project consists of:
@@ -14,6 +19,14 @@ This project consists of:
 2. **Custom GPT Configuration**: Files needed to create a custom GPT in OpenAI's GPT Builder:
    - Instructions for the GPT
    - OpenAPI specification for connecting to the API
+
+## Features
+
+- **Personalized Trip Planning**: Create custom itineraries based on user preferences and travel dates
+- **Airbnb Integration**: Search for accommodations with filters for dates, location, price, and room type
+- **Attraction Recommendations**: Discover popular attractions and activities at your destination
+- **Visual Listings**: Display Airbnb listing images directly in the chat for a more engaging experience
+- **Smart URL Generation**: Airbnb listing links include date and guest parameters for a seamless booking experience
 
 ## Setup Instructions
 
@@ -229,6 +242,8 @@ The API will be available at http://localhost:8000
 - `POST /airbnb/search`: Search for Airbnb listings
 - `POST /attractions/search`: Search for attractions
 - `POST /itinerary/create`: Create a trip itinerary
+- `GET /airbnb/listing/{listing_id}/image`: Get a specific Airbnb listing with its image formatted for display in the GPT chat
+- `POST /airbnb/listings/images`: Get multiple Airbnb listings with their images formatted for display in the GPT chat
 
 ## Troubleshooting
 
