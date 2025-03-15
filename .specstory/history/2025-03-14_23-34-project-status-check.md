@@ -7660,6 +7660,243 @@ Okay I'm having some issues logging in using an actual username and password so 
 
 _**Assistant**_
 
+I understand you're having login issues with the automation script. Let's set that aside for now and focus on committing and pushing all your changes to Git.
+
+---
+
+```bash
+git status
+```
+
+```
+jer@MacBookPro trip-planner-gpt-airbnb % git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   .gitignore
+        modified:   .specstory/history/2025-03-14_23-34-project-status-check.md
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        api/mock_data/
+
+no changes added to commit (use "git add" and/or "git commit -a")
+jer@MacBookPro trip-planner-gpt-airbnb %
+```
+
+---
+
+I see there are a few changes that need to be committed:
+
+1. Changes to `.gitignore`
+2. Changes to `.specstory/history/2025-03-14_23-34-project-status-check.md`
+3. Untracked files in `api/mock_data/`
+
+Let's add these changes and commit them:
+
+---
+
+```bash
+git add .gitignore .specstory/history/2025-03-14_23-34-project-status-check.md
+```
+
+```
+jer@MacBookPro trip-planner-gpt-airbnb % 
+
+```
+
+---
+
+Now let's check if we want to add the mock data files. Since they're in the `api/mock_data/` directory, let's see what's in there:
+
+---
+
+```bash
+ls -la api/mock_data/
+```
+
+```
+jer@MacBookPro trip-planner-gpt-airbnb % ls -la api/mock_data/
+total 16
+drwxr-xr-x@ 4 jer  staff   128 Mar 14 18:24 .
+drwxr-xr-x@ 5 jer  staff   160 Mar 14 18:24 ..
+-rw-r--r--@ 1 jer  staff  2897 Mar 14 18:24 airbnb_listings.json
+-rw-r--r--@ 1 jer  staff  1857 Mar 14 16:39 attractions.json
+jer@MacBookPro trip-planner-gpt-airbnb %
+```
+
+---
+
+I see that the mock data directory contains two JSON files:
+1. `airbnb_listings.json` - This is the file we updated with real image URLs
+2. `attractions.json` - This contains mock attraction data
+
+Let's check the `.gitignore` file to see why these files are being ignored:
+
+---
+
+```bash
+cat .gitignore | grep mock_data
+```
+
+```
+jer@MacBookPro trip-planner-gpt-airbnb % 
+
+```
+
+---
+
+Let's check the entire `.gitignore` file:
+
+---
+
+```bash
+cat .gitignore
+```
+
+```
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+
+# Environment variables
+.env
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Cursor export output
+cursor-export-output/ %
+
+
+```
+
+---
+
+I don't see `api/mock_data/` in the `.gitignore` file anymore. Let's add the mock data files to the repository:
+
+---
+
+```bash
+git add api/mock_data/
+```
+
+```
+jer@MacBookPro trip-planner-gpt-airbnb % 
+
+```
+
+---
+
+Now let's commit all these changes:
+
+---
+
+```bash
+git commit -m "Add mock data with real image URLs and update .gitignore"
+```
+
+```
+<ock data with real image URLs and update .gitignore"
+[main 226e2e7] Add mock data with real image URLs and update .gitignore
+ 4 files changed, 1397 insertions(+), 3 deletions(-)
+ create mode 100644 api/mock_data/airbnb_listings.json
+ create mode 100644 api/mock_data/attractions.json
+jer@MacBookPro trip-planner-gpt-airbnb %
+```
+
+---
+
+Now let's push these changes to the upstream repository:
+
+---
+
+```bash
+git push
+```
+
+```
+jer@MacBookPro trip-planner-gpt-airbnb % git push
+Enumerating objects: 16, done.
+Counting objects: 100% (16/16), done.
+Delta compression using up to 10 threads
+Compressing objects: 100% (10/10), done.
+Writing objects: 100% (10/10), 11.64 KiB | 5.82 MiB/s, done.
+Total 10 (delta 3), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (3/3), completed with 3 local objects.
+To https://github.com/jeremymatthewwerner/trip-planner-gpt-airbnb.git
+   3189bed..226e2e7  main -> main
+jer@MacBookPro trip-planner-gpt-airbnb %
+```
+
+---
+
+Perfect! All your changes have been successfully committed and pushed to the upstream repository. Here's a summary of what we did:
+
+1. **Added and committed the following files**:
+   - `.gitignore` - Updated to remove the mock_data directory from being ignored
+   - `.specstory/history/2025-03-14_23-34-project-status-check.md` - Updated conversation history
+   - `api/mock_data/airbnb_listings.json` - Mock Airbnb listings with real image URLs
+   - `api/mock_data/attractions.json` - Mock attraction data
+
+2. **Pushed all changes** to your GitHub repository at `https://github.com/jeremymatthewwerner/trip-planner-gpt-airbnb.git`
+
+Now your repository is up-to-date with all the changes we've made, including:
+- The updated OpenAPI schema with image endpoints
+- The automation script with Google OAuth support
+- The mock data with real image URLs
+
+These changes will be automatically deployed to Render, and your API will now support the image endpoints. You can now update your GPT in the GPT Builder UI (either manually or using the automation script when you resolve the login issues) to use these new endpoints.
+
+Is there anything else you'd like me to help you with?
+
+---
+
+_**User**_
+
+Let's commit anything uncommitted and push it all up. 
+
+---
+
+_**Assistant**_
+
 
 
 ---

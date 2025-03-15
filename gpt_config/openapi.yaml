@@ -4,8 +4,6 @@ info:
   description: API for searching Airbnb listings, attractions, and creating itineraries
   version: 1.0.0
 servers:
-  - url: http://127.0.0.1:8000
-    description: Local development server
   - url: https://trip-planner-gpt-airbnb.onrender.com
     description: Production server
 paths:
