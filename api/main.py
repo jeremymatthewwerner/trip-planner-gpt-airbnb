@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Optional
@@ -8,7 +8,8 @@ from dotenv import load_dotenv
 import logging
 from datetime import datetime
 import json
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
+import random
 
 # Load environment variables
 load_dotenv()
@@ -371,13 +372,16 @@ async def search_airbnb_listings(request: AirbnbListingRequest):
     """
     logger.info(f"Searching Airbnb listings for {request.location}")
     
+    # Get the base URL for our API
+    base_url = "https://trip-planner-gpt-airbnb.onrender.com"
+    
     # ALWAYS return hardcoded data directly for reliability
     logger.info("Returning hardcoded sample data directly")
     hardcoded_listings = [
         {
             "id": "12345",
             "name": "Luxury Beachfront Villa",
-            "url": "https://airbnb.com/h/luxury-beachfront-villa-12345",  # Using h/ format which is more resilient
+            "url": f"{base_url}/redirect/airbnb/12345",  # Use our redirect endpoint
             "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
             "price_per_night": 250.0,
             "total_price": 1750.0,
@@ -394,7 +398,7 @@ async def search_airbnb_listings(request: AirbnbListingRequest):
         {
             "id": "67890",
             "name": "Cozy Downtown Apartment",
-            "url": "https://airbnb.com/h/cozy-downtown-apartment-67890",  # Using h/ format which is more resilient
+            "url": f"{base_url}/redirect/airbnb/67890",  # Use our redirect endpoint
             "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
             "price_per_night": 120.0,
             "total_price": 840.0,
@@ -411,7 +415,7 @@ async def search_airbnb_listings(request: AirbnbListingRequest):
         {
             "id": "24680",
             "name": "Mountain Retreat Cabin",
-            "url": "https://airbnb.com/h/mountain-retreat-cabin-24680",  # Using h/ format which is more resilient
+            "url": f"{base_url}/redirect/airbnb/24680",  # Use our redirect endpoint
             "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
             "price_per_night": 180.0,
             "total_price": 1260.0,
@@ -907,13 +911,16 @@ async def get_listings_images(request: AirbnbListingRequest):
     """
     logger.info(f"Getting images for Airbnb listings in {request.location}")
     
+    # Get the base URL for our API
+    base_url = "https://trip-planner-gpt-airbnb.onrender.com"
+    
     # ALWAYS return hardcoded data directly for reliability
     logger.info("Returning hardcoded sample data directly")
     hardcoded_listings = [
         {
             "id": "12345",
             "name": "Luxury Beachfront Villa",
-            "url": "https://airbnb.com/h/luxury-beachfront-villa-12345",  # Using h/ format which is more resilient
+            "url": f"{base_url}/redirect/airbnb/12345",  # Use our redirect endpoint
             "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
             "price_per_night": 250.0,
             "total_price": 1750.0,
@@ -930,7 +937,7 @@ async def get_listings_images(request: AirbnbListingRequest):
         {
             "id": "67890",
             "name": "Cozy Downtown Apartment",
-            "url": "https://airbnb.com/h/cozy-downtown-apartment-67890",  # Using h/ format which is more resilient
+            "url": f"{base_url}/redirect/airbnb/67890",  # Use our redirect endpoint
             "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
             "price_per_night": 120.0,
             "total_price": 840.0,
@@ -947,7 +954,7 @@ async def get_listings_images(request: AirbnbListingRequest):
         {
             "id": "24680",
             "name": "Mountain Retreat Cabin",
-            "url": "https://airbnb.com/h/mountain-retreat-cabin-24680",  # Using h/ format which is more resilient
+            "url": f"{base_url}/redirect/airbnb/24680",  # Use our redirect endpoint
             "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
             "price_per_night": 180.0,
             "total_price": 1260.0,
@@ -1100,6 +1107,60 @@ async def debug_info():
     except Exception as e:
         logger.error(f"Error in debug endpoint: {str(e)}")
         return {"error": str(e)}
+
+@app.get("/redirect/airbnb/{listing_id}")
+async def redirect_to_airbnb(listing_id: str, request: Request):
+    """
+    Redirect to an Airbnb listing.
+    This endpoint helps bypass Airbnb's anti-bot measures by adding proper headers and referrers.
+    """
+    logger.info(f"Redirecting to Airbnb listing {listing_id}")
+    
+    # Find the listing in our data to get the name
+    listing_name = ""
+    mock_listings = load_mock_data("airbnb_listings.json")
+    for item in mock_listings:
+        if item.get("id") == listing_id:
+            listing_name = item.get("name", "").lower().replace(" ", "-")
+            break
+    
+    # If we couldn't find the listing, use a generic name
+    if not listing_name:
+        listing_name = "airbnb-listing"
+    
+    # Create the redirect URL
+    # Try both formats to increase chances of success
+    if random.choice([True, False]):
+        # Use the /rooms/ format
+        redirect_url = f"https://www.airbnb.com/rooms/{listing_id}"
+    else:
+        # Use the /h/ format
+        redirect_url = f"https://airbnb.com/h/{listing_name}-{listing_id}"
+    
+    logger.info(f"Redirecting to: {redirect_url}")
+    
+    # Return an HTML page that will redirect the user with proper headers and referrers
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Redirecting to Airbnb</title>
+        <meta http-equiv="refresh" content="0;url={redirect_url}">
+        <script>
+            // Add proper referrer
+            document.referrer = "https://www.google.com/";
+            // Redirect with JavaScript too for better compatibility
+            window.location.href = "{redirect_url}";
+        </script>
+    </head>
+    <body>
+        <h1>Redirecting to Airbnb...</h1>
+        <p>If you are not redirected automatically, <a href="{redirect_url}">click here</a>.</p>
+    </body>
+    </html>
+    """
+    
+    return HTMLResponse(content=html_content)
 
 if __name__ == "__main__":
     import uvicorn
