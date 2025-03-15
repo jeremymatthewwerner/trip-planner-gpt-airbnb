@@ -528,18 +528,21 @@ def search_airbnb_mock(request: AirbnbListingRequest):
             listing_id = listing.get("id", "")
             if listing_id:
                 listing["url"] = f"https://www.airbnb.com/rooms/{listing_id}?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}"
+            # IMPORTANT: Always update the location to match the requested location
+            # This ensures listings will be found regardless of their original location
             listing["location"] = request.location
     
+    # TEMPORARILY DISABLE FILTERING
     # Filter by room type if specified
-    if request.room_type:
+    if request.room_type and False:  # Disabled
         logger.info(f"Filtering by room type: {request.room_type}")
         mock_listings = [listing for listing in mock_listings if listing["room_type"] == request.room_type]
     
     # Filter by price range if specified
-    if request.price_min is not None:
+    if request.price_min is not None and False:  # Disabled
         logger.info(f"Filtering by minimum price: {request.price_min}")
         mock_listings = [listing for listing in mock_listings if listing["price_per_night"] >= request.price_min]
-    if request.price_max is not None:
+    if request.price_max is not None and False:  # Disabled
         logger.info(f"Filtering by maximum price: {request.price_max}")
         mock_listings = [listing for listing in mock_listings if listing["price_per_night"] <= request.price_max]
     
