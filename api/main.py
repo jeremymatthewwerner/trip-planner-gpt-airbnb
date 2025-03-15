@@ -120,18 +120,20 @@ async def search_airbnb_listings(request: AirbnbListingRequest):
     logger.info(f"Searching Airbnb listings for {request.location}")
     
     try:
-        # Try to use RapidAPI if key is available
-        if RAPIDAPI_KEY and RAPIDAPI_KEY != "your_valid_rapidapi_key_here":
-            try:
-                listings = await search_airbnb_rapidapi(request)
-                logger.info(f"Successfully retrieved {len(listings)} listings from RapidAPI")
-                return listings
-            except Exception as api_error:
-                logger.error(f"RapidAPI search failed: {str(api_error)}")
-                logger.info("Falling back to mock data")
+        if not RAPIDAPI_KEY:
+            logger.warning("RAPIDAPI_KEY not set. Using mock data.")
+            return search_airbnb_mock(request)
+            
+        try:
+            listings = await search_airbnb_rapidapi(request)
+            if not listings:
+                logger.warning("No listings found from RapidAPI. Using mock data.")
                 return search_airbnb_mock(request)
-        else:
-            logger.info("No valid RapidAPI key found. Using mock data")
+            logger.info(f"Successfully retrieved {len(listings)} listings from RapidAPI")
+            return listings
+        except Exception as api_error:
+            logger.error(f"RapidAPI search failed: {str(api_error)}")
+            logger.info("Falling back to mock data")
             return search_airbnb_mock(request)
     
     except Exception as e:
@@ -454,13 +456,10 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
     }
     
     try:
-        # Only attempt the API call if we have a RapidAPI key
-        if not RAPIDAPI_KEY or RAPIDAPI_KEY == "your_valid_rapidapi_key_here":
-            logger.warning("No valid RAPIDAPI_KEY provided. Using mock data.")
-            raise Exception("No valid RAPIDAPI_KEY provided")
-            
+        logger.info(f"Attempting RapidAPI call with key: {RAPIDAPI_KEY[:5]}...")
         async with httpx.AsyncClient() as client:
             response = await client.get(url, params=query_params, headers=headers)
+            logger.info(f"RapidAPI response status: {response.status_code}")
             
             if response.status_code != 200:
                 error_message = f"RapidAPI error: {response.status_code}"
@@ -475,6 +474,7 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
                 raise Exception(error_message)
             
             data = response.json()
+            logger.info(f"RapidAPI response data type: {type(data)}")
             
             # Check if the response indicates an error
             if isinstance(data, dict) and data.get("error") is True:
@@ -484,7 +484,10 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
             
             # Transform the API response to match our data model
             listings = []
-            for item in data.get("results", []):
+            results = data.get("results", [])
+            logger.info(f"Found {len(results)} results from RapidAPI")
+            
+            for item in results:
                 try:
                     # Make sure item is a dictionary before trying to access its properties
                     if not isinstance(item, dict):
@@ -500,11 +503,11 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
                     if not isinstance(price_info, dict):
                         price_info = {}
                     
-                    # Create the listing object
+                    # Create the listing object with the actual listing ID
                     listing = {
                         "id": str(item.get("id", "")),
                         "name": item.get("name", ""),
-                        "url": f"https://www.airbnb.com/rooms/{item.get('id')}?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}&source_impression_id=p3_1709862991&guests=1",
+                        "url": f"https://www.airbnb.com/rooms/{item.get('id')}?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}",
                         "image_url": image_url,
                         "price_per_night": float(price_info.get("rate", 0)),
                         "total_price": float(price_info.get("total", 0)),
@@ -523,7 +526,7 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
                     logger.error(f"Error processing listing: {str(e)}")
                     continue
             
-            logger.info(f"Found {len(listings)} listings from RapidAPI")
+            logger.info(f"Successfully processed {len(listings)} listings from RapidAPI")
             return listings
             
     except Exception as e:
