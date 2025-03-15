@@ -368,6 +368,7 @@ async def get_listings_images(request: AirbnbListingRequest):
     listings = listings[:3]
     
     # Format the response with markdown for each listing
+    markdown_images = []
     formatted_listings = []
     for listing in listings:
         image_url = listing.get("image_url", "")
@@ -377,15 +378,18 @@ async def get_listings_images(request: AirbnbListingRequest):
                 image_url = "https:" + image_url[5:]
                 
             logger.info(f"Adding image for listing {listing.get('id')}: {image_url}")
+            markdown = f"![{listing['name']}]({image_url})"
+            markdown_images.append(markdown)
             formatted_listings.append({
                 "listing": listing,
-                "markdown": f"![{listing['name']}]({image_url})",
+                "markdown": markdown,
                 "image_url": image_url
             })
     
     logger.info(f"Returning {len(formatted_listings)} listing images")
     return {
         "listings": formatted_listings,
+        "markdown": "\n".join(markdown_images),
         "count": len(formatted_listings)
     }
 
