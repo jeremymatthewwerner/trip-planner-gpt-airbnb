@@ -371,35 +371,25 @@ async def search_airbnb_listings(request: AirbnbListingRequest):
     """
     logger.info(f"Searching Airbnb listings for {request.location}")
     
-    # Get the base URL for our API
-    base_url = "https://trip-planner-gpt-airbnb.onrender.com"
-    
     try:
         # Try to use RapidAPI if key is available and not a placeholder
         if RAPIDAPI_KEY and RAPIDAPI_KEY != "your_valid_rapidapi_key_here":
             try:
                 listings = await search_airbnb_rapidapi(request)
-                
-                # Update the URLs to use our redirect endpoint
-                for listing in listings:
-                    listing_id = listing.get("id", "")
-                    if listing_id:
-                        listing["url"] = f"{base_url}/redirect/airbnb/{listing_id}"
-                
                 return listings
             except Exception as api_error:
                 logger.error(f"RapidAPI search failed: {str(api_error)}")
                 logger.info("Falling back to mock data.")
-                return search_airbnb_mock(request, base_url)
+                return search_airbnb_mock(request)
         else:
             logger.info("No valid RapidAPI key found. Using mock data.")
-            return search_airbnb_mock(request, base_url)
+            return search_airbnb_mock(request)
     
     except Exception as e:
         logger.error(f"Error searching Airbnb listings: {str(e)}")
         # Always try to return mock data as a last resort
         try:
-            return search_airbnb_mock(request, base_url)
+            return search_airbnb_mock(request)
         except Exception as mock_error:
             logger.error(f"Mock data fallback also failed: {str(mock_error)}")
             raise HTTPException(status_code=500, detail="Failed to retrieve Airbnb listings")
@@ -410,9 +400,6 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
     Falls back to mock data if the API call fails.
     """
     url = "https://airbnb13.p.rapidapi.com/search-location"
-    
-    # Get the base URL for our API
-    base_url = "https://trip-planner-gpt-airbnb.onrender.com"
     
     # Map our room types to RapidAPI's room types
     room_type_map = {
@@ -498,13 +485,23 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
                         price_per_night = float(price.get("rate", 0)) if price.get("rate") is not None else 0.0
                         total_price = float(price.get("total", 0)) if price.get("total") is not None else 0.0
                     
-                    # Create a URL with our redirect endpoint
-                    listing_url = f"{base_url}/redirect/airbnb/{item_id}"
+                    # Create a direct URL to Airbnb
+                    # Format: https://www.airbnb.com/rooms/ID?adults=X&check_in=YYYY-MM-DD&check_out=YYYY-MM-DD
+                    airbnb_url = f"https://www.airbnb.com/rooms/{item_id}?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}"
+                    
+                    # Check if the API already returned a URL with source_impression_id
+                    api_url = item.get("url", "")
+                    if api_url and "source_impression_id=" in api_url:
+                        import re
+                        match = re.search(r'source_impression_id=([^&]+)', api_url)
+                        if match:
+                            source_impression_id = match.group(1)
+                            airbnb_url += f"&source_impression_id={source_impression_id}"
                     
                     listing = {
                         "id": item_id,
                         "name": name,
-                        "url": listing_url if item_id else "",
+                        "url": airbnb_url if item_id else "",
                         "image_url": image_url,
                         "price_per_night": price_per_night,
                         "total_price": total_price,
@@ -527,9 +524,9 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
     except Exception as e:
         logger.error(f"Error in RapidAPI request: {str(e)}")
         # Fall back to mock data
-        return search_airbnb_mock(request, base_url)
+        return search_airbnb_mock(request)
 
-def search_airbnb_mock(request: AirbnbListingRequest, base_url: str):
+def search_airbnb_mock(request: AirbnbListingRequest):
     """
     Search for Airbnb listings using mock data.
     """
@@ -546,7 +543,7 @@ def search_airbnb_mock(request: AirbnbListingRequest, base_url: str):
             {
                 "id": "12345",
                 "name": "Luxury Beachfront Villa",
-                "url": f"{base_url}/redirect/airbnb/12345",  # Use our redirect endpoint
+                "url": f"https://www.airbnb.com/rooms/12345?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
                 "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
                 "price_per_night": 250.0,
                 "total_price": 1750.0,
@@ -563,7 +560,7 @@ def search_airbnb_mock(request: AirbnbListingRequest, base_url: str):
             {
                 "id": "67890",
                 "name": "Cozy Downtown Apartment",
-                "url": f"{base_url}/redirect/airbnb/67890",  # Use our redirect endpoint
+                "url": f"https://www.airbnb.com/rooms/67890?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
                 "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
                 "price_per_night": 120.0,
                 "total_price": 840.0,
@@ -580,7 +577,7 @@ def search_airbnb_mock(request: AirbnbListingRequest, base_url: str):
             {
                 "id": "24680",
                 "name": "Mountain Retreat Cabin",
-                "url": f"{base_url}/redirect/airbnb/24680",  # Use our redirect endpoint
+                "url": f"https://www.airbnb.com/rooms/24680?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}",
                 "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
                 "price_per_night": 180.0,
                 "total_price": 1260.0,
@@ -611,12 +608,12 @@ def search_airbnb_mock(request: AirbnbListingRequest, base_url: str):
         except Exception as e:
             logger.error(f"Error saving mock data: {str(e)}")
     else:
-        # Update URLs in existing mock data to use our redirect endpoint
+        # Update URLs in existing mock data to use direct Airbnb URLs
         logger.info("Updating URLs in existing mock data")
         for listing in mock_listings:
             listing_id = listing.get("id", "")
             if listing_id:
-                listing["url"] = f"{base_url}/redirect/airbnb/{listing_id}"
+                listing["url"] = f"https://www.airbnb.com/rooms/{listing_id}?adults={request.adults}&check_in={request.check_in}&check_out={request.check_out}"
             # IMPORTANT: Always update the location to match the requested location
             # This ensures listings will be found regardless of their original location
             listing["location"] = request.location
@@ -804,12 +801,11 @@ async def get_listing_image(listing_id: str):
                         
                         if image_url:
                             name = item.get("name", "Beautiful Airbnb Listing")
-                            name_slug = name.lower().replace(" ", "-")
                             listing = {
                                 "id": listing_id,
                                 "name": name,
                                 "image_url": image_url,
-                                "url": f"https://airbnb.com/h/{name_slug}-{listing_id}"
+                                "url": f"https://www.airbnb.com/rooms/{listing_id}"
                             }
         except Exception as e:
             logger.error(f"Error fetching listing from RapidAPI: {str(e)}")
