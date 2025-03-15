@@ -253,7 +253,102 @@ def load_mock_data(filename):
         logger.error(f"Mock data file not found: {str(e)}")
         # Create directory if it doesn't exist
         os.makedirs(os.path.join(base_dir, "api", "mock_data"), exist_ok=True)
-        # Return empty data
+        
+        # Return hardcoded sample data instead of empty data
+        if filename == "airbnb_listings.json":
+            logger.info("Returning hardcoded sample Airbnb listings")
+            return [
+                {
+                    "id": "12345",
+                    "name": "Luxury Beachfront Villa",
+                    "url": "https://www.airbnb.com/rooms/12345?adults=2&check_in=2024-05-01&check_out=2024-05-05",
+                    "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
+                    "price_per_night": 250.0,
+                    "total_price": 1750.0,
+                    "rating": 4.9,
+                    "reviews_count": 120,
+                    "room_type": "entire_home",
+                    "beds": 3,
+                    "bedrooms": 2,
+                    "bathrooms": 2.5,
+                    "amenities": ["Pool", "Wifi", "Kitchen", "Air conditioning"],
+                    "location": "Paris, France",
+                    "superhost": True
+                },
+                {
+                    "id": "67890",
+                    "name": "Cozy Downtown Apartment",
+                    "url": "https://www.airbnb.com/rooms/67890?adults=2&check_in=2024-05-01&check_out=2024-05-05",
+                    "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
+                    "price_per_night": 120.0,
+                    "total_price": 840.0,
+                    "rating": 4.7,
+                    "reviews_count": 85,
+                    "room_type": "entire_home",
+                    "beds": 1,
+                    "bedrooms": 1,
+                    "bathrooms": 1.0,
+                    "amenities": ["Wifi", "Kitchen", "Washer"],
+                    "location": "Paris, France",
+                    "superhost": False
+                },
+                {
+                    "id": "24680",
+                    "name": "Mountain Retreat Cabin",
+                    "url": "https://www.airbnb.com/rooms/24680?adults=2&check_in=2024-05-01&check_out=2024-05-05",
+                    "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
+                    "price_per_night": 180.0,
+                    "total_price": 1260.0,
+                    "rating": 4.8,
+                    "reviews_count": 95,
+                    "room_type": "entire_home",
+                    "beds": 2,
+                    "bedrooms": 2,
+                    "bathrooms": 1.5,
+                    "amenities": ["Fireplace", "Hot tub", "Wifi", "Kitchen"],
+                    "location": "Paris, France",
+                    "superhost": True
+                }
+            ]
+        elif filename == "attractions.json":
+            logger.info("Returning hardcoded sample attractions")
+            return [
+                {
+                    "name": "Eiffel Tower",
+                    "description": "Iconic iron tower with stunning views of Paris.",
+                    "category": "landmarks",
+                    "price_level": "medium",
+                    "rating": 4.7,
+                    "reviews_count": 1500,
+                    "url": "https://www.toureiffel.paris/en",
+                    "image_url": "https://images.unsplash.com/photo-1543349689-9a4d426bee8e?q=80&w=1000&auto=format&fit=crop",
+                    "location": "Paris, France"
+                },
+                {
+                    "name": "Louvre Museum",
+                    "description": "World's largest art museum and home to the Mona Lisa.",
+                    "category": "museums",
+                    "price_level": "medium",
+                    "rating": 4.8,
+                    "reviews_count": 1200,
+                    "url": "https://www.louvre.fr/en",
+                    "image_url": "https://images.unsplash.com/photo-1565099824688-e93eb20fe622?q=80&w=1000&auto=format&fit=crop",
+                    "location": "Paris, France"
+                },
+                {
+                    "name": "Seine River Cruise",
+                    "description": "Relaxing boat tour along the Seine River with views of Paris landmarks.",
+                    "category": "tours",
+                    "price_level": "medium",
+                    "rating": 4.6,
+                    "reviews_count": 950,
+                    "url": "https://www.bateauxparisiens.com/en.html",
+                    "image_url": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?q=80&w=1000&auto=format&fit=crop",
+                    "location": "Paris, France"
+                }
+            ]
+        
+        # Return empty data for other files
         return []
     except Exception as e:
         logger.error(f"Error loading mock data: {str(e)}")
