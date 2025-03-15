@@ -43,4 +43,7 @@ ehthumbs.db
 Thumbs.db
 
 # Cursor export output
-cursor-export-output/ 
+cursor-export-output/
+
+# Prevent .specstory from being added to the repository
+.specstory/ 
