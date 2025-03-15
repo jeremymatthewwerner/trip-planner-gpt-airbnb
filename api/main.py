@@ -469,9 +469,9 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
     
     # Add optional parameters if provided
     if request.price_min is not None:
-        query_params["price_min"] = request.price_min
+        query_params["priceMin"] = request.price_min
     if request.price_max is not None:
-        query_params["price_max"] = request.price_max
+        query_params["priceMax"] = request.price_max
     if request.room_type and request.room_type in room_type_map:
         query_params["room_type"] = room_type_map[request.room_type]
     
@@ -532,7 +532,7 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
                     listing = {
                         "id": str(item.get("id", "")),
                         "name": item.get("name", ""),
-                        "url": f"https://www.airbnb.com/rooms/{item.get('id')}?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}",
+                        "url": f"https://www.airbnb.com/rooms/{item.get('id')}?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}&source_impression_id=p3_1742061945_P3jMBbsU8EDOGNxo",
                         "image_url": image_url,
                         "price_per_night": float(price_info.get("rate", 0)),
                         "total_price": float(price_info.get("total", 0)),
@@ -639,7 +639,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
         for listing in mock_listings:
             listing_id = listing.get("id", "")
             if listing_id:
-                listing["url"] = f"https://www.airbnb.com/rooms/{listing_id}?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}&source_impression_id=p3_1709862991&guests=1"
+                listing["url"] = f"https://www.airbnb.com/rooms/{listing_id}?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}&source_impression_id=p3_1742061945_P3jMBbsU8EDOGNxo"
             # IMPORTANT: Always update the location to match the requested location
             # This ensures listings will be found regardless of their original location
             listing["location"] = request.location
