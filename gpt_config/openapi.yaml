@@ -265,10 +265,12 @@ paths:
                 properties:
                   markdown:
                     type: string
-                    description: Markdown for displaying the test image in the chat
-                  image_url:
-                    type: string
-                    description: URL of the test image
+                    description: Markdown for displaying the test images in the chat
+                  image_urls:
+                    type: array
+                    items:
+                      type: string
+                    description: URLs of the test images
                   message:
                     type: string
                     description: Message indicating whether image display is working
@@ -335,8 +337,11 @@ components:
           type: integer
         url:
           type: string
-        image_url:
-          type: string
+        image_urls:
+          type: array
+          items:
+            type: string
+          description: List of image URLs for the attraction
         location:
           type: string
     ItineraryDay:
