@@ -437,7 +437,6 @@ async def get_listings_images(request: AirbnbListingRequest):
     logger.info(f"Returning {len(formatted_listings)} listing images")
     return {
         "listings": formatted_listings,
-        "markdown": "\n".join(markdown_images),
         "count": len(formatted_listings)
     }
 

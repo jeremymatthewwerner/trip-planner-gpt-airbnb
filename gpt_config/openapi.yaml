@@ -235,7 +235,7 @@ paths:
                           $ref: '#/components/schemas/AirbnbListing'
                         markdown:
                           type: string
-                          description: Markdown for displaying the images in the chat
+                          description: Markdown for displaying the images in a grid layout
                         image_urls:
                           type: array
                           items:
