@@ -403,10 +403,30 @@ async def get_listings_images(request: AirbnbListingRequest):
         image_urls = listing.get("image_urls", [])
         if image_urls:
             # Ensure the image URLs are using HTTPS
-            image_urls = [url if url.startswith("http:") else "https:" + url[5:] for url in image_urls]
+            image_urls = [url if url.startswith("https:") else "https:" + url[5:] for url in image_urls]
             
             logger.info(f"Adding images for listing {listing.get('id')}: {image_urls}")
-            markdown = "\n".join([f"![{listing['name']}]({url})" for url in image_urls])
+            
+            # Create markdown for image grid
+            name = listing['name']
+            markdown = ""
+            
+            if len(image_urls) == 1:
+                # Single image
+                markdown = f"![{name}]({image_urls[0]})"
+            elif len(image_urls) == 2:
+                # Two images in a row
+                markdown = f"![{name} 1]({image_urls[0]}) ![{name} 2]({image_urls[1]})"
+            elif len(image_urls) == 3:
+                # Three images in a row
+                markdown = f"![{name} 1]({image_urls[0]}) ![{name} 2]({image_urls[1]}) ![{name} 3]({image_urls[2]})"
+            else:
+                # Four images in a 2x2 grid
+                markdown = (
+                    f"![{name} 1]({image_urls[0]}) ![{name} 2]({image_urls[1]})\n"
+                    f"![{name} 3]({image_urls[2]}) ![{name} 4]({image_urls[3]})"
+                )
+            
             markdown_images.append(markdown)
             formatted_listings.append({
                 "listing": listing,
