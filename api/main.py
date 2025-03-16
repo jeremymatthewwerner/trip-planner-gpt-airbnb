@@ -48,7 +48,7 @@ class AirbnbListing(BaseModel):
     id: str
     name: str
     url: str
-    image_url: str
+    image_urls: List[str]
     price_per_night: float
     total_price: float
     rating: Optional[float] = None
@@ -74,7 +74,7 @@ class Attraction(BaseModel):
     rating: float
     reviews_count: int
     url: str
-    image_url: Optional[str] = None
+    image_urls: Optional[List[str]] = None
     location: str
 
 class ItineraryRequest(BaseModel):
@@ -172,7 +172,7 @@ async def search_attractions(request: AttractionRequest):
                     "rating": 4.8,
                     "reviews_count": 1200,
                     "url": "https://www.centralparknyc.org/",
-                    "image_url": "https://example.com/central_park.jpg",
+                    "image_urls": ["https://example.com/central_park.jpg"],
                     "location": request.location
                 },
                 {
@@ -183,7 +183,7 @@ async def search_attractions(request: AttractionRequest):
                     "rating": 4.9,
                     "reviews_count": 950,
                     "url": "https://www.metmuseum.org/",
-                    "image_url": "https://example.com/met.jpg",
+                    "image_urls": ["https://example.com/met.jpg"],
                     "location": request.location
                 },
                 {
@@ -194,7 +194,7 @@ async def search_attractions(request: AttractionRequest):
                     "rating": 4.7,
                     "reviews_count": 780,
                     "url": "https://www.le-bernardin.com/",
-                    "image_url": "https://example.com/le_bernardin.jpg",
+                    "image_urls": ["https://example.com/le_bernardin.jpg"],
                     "location": request.location
                 }
             ]
@@ -421,22 +421,17 @@ async def get_listings_images(request: AirbnbListingRequest):
         "count": len(formatted_listings)
     }
 
-@app.get("/test-image")
+@app.get("/airbnb/test-image")
 async def test_image():
-    """
-    Test endpoint to verify that image URLs are working correctly.
-    Returns a test image that should display in the GPT chat.
-    """
-    logger.info("Testing image display in GPT chat")
-    
-    # Use a reliable image URL from Unsplash
-    test_image_url = "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop"
-    
-    # Return the test image with markdown
+    """Test endpoint to verify that image URLs are working correctly in the GPT chat"""
+    test_image_urls = [
+        "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop"
+    ]
     return {
-        "markdown": f"![Test Image]({test_image_url})",
-        "image_url": test_image_url,
-        "message": "If you can see the image above, image display is working correctly."
+        "markdown": "\n".join([f"![Test Image {i+1}]({url})" for i, url in enumerate(test_image_urls)]),
+        "image_urls": test_image_urls,
+        "message": "Image display is working correctly"
     }
 
 async def search_airbnb_rapidapi(request: AirbnbListingRequest):
@@ -626,7 +621,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
                 "id": "12345",
                 "name": "Luxury Beachfront Villa",
                 "url": f"https://www.airbnb.com/rooms/12345?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}&source_impression_id=p3_1709862991&guests=1",
-                "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
+                "image_urls": ["https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop"],
                 "price_per_night": 250.0,
                 "total_price": 1750.0,
                 "rating": 4.9,
@@ -643,7 +638,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
                 "id": "67890",
                 "name": "Cozy Downtown Apartment",
                 "url": f"https://www.airbnb.com/rooms/67890?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}&source_impression_id=p3_1709862991&guests=1",
-                "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop",
+                "image_urls": ["https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1000&auto=format&fit=crop"],
                 "price_per_night": 120.0,
                 "total_price": 840.0,
                 "rating": 4.7,
@@ -660,7 +655,7 @@ def search_airbnb_mock(request: AirbnbListingRequest):
                 "id": "24680",
                 "name": "Mountain Retreat Cabin",
                 "url": f"https://www.airbnb.com/rooms/24680?check_in={request.check_in}&check_out={request.check_out}&adults={request.adults}&source_impression_id=p3_1709862991&guests=1",
-                "image_url": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop",
+                "image_urls": ["https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=1000&auto=format&fit=crop"],
                 "price_per_night": 180.0,
                 "total_price": 1260.0,
                 "rating": 4.8,

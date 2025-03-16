@@ -1,57 +1,74 @@
-[
-  {
-    "name": "Central Park",
-    "description": "Iconic urban park with walking paths, a zoo, and boat rentals.",
-    "category": "outdoor",
-    "price_level": "low",
-    "rating": 4.8,
-    "reviews_count": 1200,
-    "url": "https://www.centralparknyc.org/",
-    "image_url": "https://example.com/central_park.jpg",
-    "location": "New York, NY"
-  },
-  {
-    "name": "Metropolitan Museum of Art",
-    "description": "One of the world's largest and finest art museums.",
-    "category": "museums",
-    "price_level": "medium",
-    "rating": 4.9,
-    "reviews_count": 950,
-    "url": "https://www.metmuseum.org/",
-    "image_url": "https://example.com/met.jpg",
-    "location": "New York, NY"
-  },
-  {
-    "name": "Le Bernardin",
-    "description": "Upscale French seafood restaurant with prix fixe menus.",
-    "category": "food",
-    "price_level": "high",
-    "rating": 4.7,
-    "reviews_count": 780,
-    "url": "https://www.le-bernardin.com/",
-    "image_url": "https://example.com/le_bernardin.jpg",
-    "location": "New York, NY"
-  },
-  {
-    "name": "South Beach",
-    "description": "Iconic beach known for its white sand, turquoise waters, and Art Deco architecture.",
-    "category": "outdoor",
-    "price_level": "low",
-    "rating": 4.6,
-    "reviews_count": 1500,
-    "url": "https://www.miamiandbeaches.com/places-to-see/south-beach",
-    "image_url": "https://example.com/south_beach.jpg",
-    "location": "Miami, FL"
-  },
-  {
-    "name": "Freedom Trail",
-    "description": "A 2.5-mile-long path through downtown Boston that passes by 16 locations significant to the history of the United States.",
-    "category": "history",
-    "price_level": "low",
-    "rating": 4.8,
-    "reviews_count": 950,
-    "url": "https://www.thefreedomtrail.org/",
-    "image_url": "https://example.com/freedom_trail.jpg",
-    "location": "Boston, MA"
-  }
-] 
+{
+    "attractions": [
+        {
+            "name": "Central Park",
+            "description": "Iconic urban park with walking trails, a zoo, and seasonal activities",
+            "category": "Parks",
+            "price_level": "Free",
+            "rating": 4.8,
+            "reviews_count": 1200,
+            "url": "https://www.centralparknyc.org/",
+            "image_urls": [
+                "https://example.com/central_park.jpg",
+                "https://example.com/central_park_2.jpg"
+            ],
+            "location": "New York, NY"
+        },
+        {
+            "name": "Metropolitan Museum of Art",
+            "description": "World-renowned art museum with extensive collections",
+            "category": "Museums",
+            "price_level": "$$",
+            "rating": 4.7,
+            "reviews_count": 950,
+            "url": "https://www.metmuseum.org/",
+            "image_urls": [
+                "https://example.com/met.jpg",
+                "https://example.com/met_2.jpg"
+            ],
+            "location": "New York, NY"
+        },
+        {
+            "name": "Le Bernardin",
+            "description": "Upscale French seafood restaurant",
+            "category": "Restaurants",
+            "price_level": "$$$$",
+            "rating": 4.9,
+            "reviews_count": 780,
+            "url": "https://www.le-bernardin.com/",
+            "image_urls": [
+                "https://example.com/le_bernardin.jpg",
+                "https://example.com/le_bernardin_2.jpg"
+            ],
+            "location": "New York, NY"
+        },
+        {
+            "name": "South Beach",
+            "description": "Famous beach known for its Art Deco district",
+            "category": "Beaches",
+            "price_level": "Free",
+            "rating": 4.6,
+            "reviews_count": 850,
+            "url": "https://www.miamibeachfl.gov/",
+            "image_urls": [
+                "https://example.com/south_beach.jpg",
+                "https://example.com/south_beach_2.jpg"
+            ],
+            "location": "Miami Beach, FL"
+        },
+        {
+            "name": "Freedom Trail",
+            "description": "Historic walking route through Boston",
+            "category": "Historic Sites",
+            "price_level": "Free",
+            "rating": 4.7,
+            "reviews_count": 920,
+            "url": "https://www.thefreedomtrail.org/",
+            "image_urls": [
+                "https://example.com/freedom_trail.jpg",
+                "https://example.com/freedom_trail_2.jpg"
+            ],
+            "location": "Boston, MA"
+        }
+    ]
+} 
