@@ -314,38 +314,63 @@ async def get_listing_image(listing_id: str):
                     detail=f"Listing with ID {listing_id} not found"
                 )
             
-            # Get the image URL from the API response
-            images = item.get("images", []) if isinstance(item.get("images"), list) else []
-            image_url = ""
-            if images and isinstance(images[0], dict):
-                image_url = images[0].get("picture", "")
-                logger.info(f"Found image URL (dict): {image_url}")
-            elif images and isinstance(images[0], str):
-                image_url = images[0]
-                logger.info(f"Found image URL (str): {image_url}")
+            # Get the images from the API response
+            images_list = item.get("images", []) if isinstance(item.get("images"), list) else []
+            image_urls = []
             
-            if not image_url:
+            # Process up to 4 images
+            for i, img in enumerate(images_list[:4]):
+                if isinstance(img, dict):
+                    img_url = img.get("picture", "")
+                elif isinstance(img, str):
+                    img_url = img
+                else:
+                    continue
+                
+                if img_url:
+                    # Ensure the image URL is using HTTPS
+                    if img_url.startswith("http:"):
+                        img_url = "https:" + img_url[5:]
+                    image_urls.append(img_url)
+            
+            if not image_urls:
                 raise HTTPException(
                     status_code=404,
-                    detail=f"No image found for listing {listing_id}"
+                    detail=f"No images found for listing {listing_id}"
                 )
-            
-            # Ensure the image URL is using HTTPS
-            if image_url.startswith("http:"):
-                image_url = "https:" + image_url[5:]
             
             listing = {
                 "id": listing_id,
                 "name": item.get("name", "Airbnb Listing"),
-                "image_url": image_url,
+                "image_urls": image_urls,  # Store all image URLs
                 "url": f"https://www.airbnb.com/rooms/{listing_id}"
             }
+            
+            # Create markdown for image grid
+            name = listing['name']
+            markdown = ""
+            
+            if len(image_urls) == 1:
+                # Single image
+                markdown = f"![{name}]({image_urls[0]})"
+            elif len(image_urls) == 2:
+                # Two images in a row
+                markdown = f"![{name} 1]({image_urls[0]}) ![{name} 2]({image_urls[1]})"
+            elif len(image_urls) == 3:
+                # Three images in a row
+                markdown = f"![{name} 1]({image_urls[0]}) ![{name} 2]({image_urls[1]}) ![{name} 3]({image_urls[2]})"
+            else:
+                # Four images in a 2x2 grid
+                markdown = (
+                    f"![{name} 1]({image_urls[0]}) ![{name} 2]({image_urls[1]})\n"
+                    f"![{name} 3]({image_urls[2]}) ![{name} 4]({image_urls[3]})"
+                )
             
             # Return the listing with image markdown
             return {
                 "listing": listing,
-                "markdown": f"![{listing['name']}]({image_url})",
-                "image_url": image_url
+                "markdown": markdown,
+                "image_urls": image_urls  # Return all image URLs
             }
             
     except HTTPException:
@@ -375,19 +400,18 @@ async def get_listings_images(request: AirbnbListingRequest):
     markdown_images = []
     formatted_listings = []
     for listing in listings:
-        image_url = listing.get("image_url", "")
-        if image_url:
-            # Ensure the image URL is using HTTPS
-            if image_url.startswith("http:"):
-                image_url = "https:" + image_url[5:]
-                
-            logger.info(f"Adding image for listing {listing.get('id')}: {image_url}")
-            markdown = f"![{listing['name']}]({image_url})"
+        image_urls = listing.get("image_urls", [])
+        if image_urls:
+            # Ensure the image URLs are using HTTPS
+            image_urls = [url if url.startswith("http:") else "https:" + url[5:] for url in image_urls]
+            
+            logger.info(f"Adding images for listing {listing.get('id')}: {image_urls}")
+            markdown = "\n".join([f"![{listing['name']}]({url})" for url in image_urls])
             markdown_images.append(markdown)
             formatted_listings.append({
                 "listing": listing,
                 "markdown": markdown,
-                "image_url": image_url
+                "image_urls": image_urls
             })
     
     logger.info(f"Returning {len(formatted_listings)} listing images")
@@ -520,9 +544,30 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
                         logger.error(f"Expected dictionary but got {type(item)}: {item}")
                         continue
                         
-                    # Get the first image URL from the images array
-                    images = item.get("images", [])
-                    image_url = images[0] if images else ""
+                    # Get the images from the API response
+                    images_list = item.get("images", []) if isinstance(item.get("images"), list) else []
+                    image_urls = []
+                    
+                    # Process up to 4 images
+                    for i, img in enumerate(images_list[:4]):
+                        if isinstance(img, dict):
+                            img_url = img.get("picture", "")
+                        elif isinstance(img, str):
+                            img_url = img
+                        else:
+                            continue
+                        
+                        if img_url:
+                            # Ensure the image URL is using HTTPS
+                            if img_url.startswith("http:"):
+                                img_url = "https:" + img_url[5:]
+                            image_urls.append(img_url)
+                    
+                    if not image_urls:
+                        raise HTTPException(
+                            status_code=404,
+                            detail=f"No images found for listing {item.get('id')}"
+                        )
                     
                     # Get price information
                     price_info = item.get("price", {})
@@ -533,12 +578,12 @@ async def search_airbnb_rapidapi(request: AirbnbListingRequest):
                     listing = {
                         "id": str(item.get("id", "")),
                         "name": item.get("name", ""),
+                        "image_urls": image_urls,  # Store all image URLs
                         "url": f"https://www.airbnb.com/rooms/{item.get('id')}?" + urlencode({
                             "check_in": request.check_in,
                             "check_out": request.check_out,
                             "adults": request.adults
                         }),
-                        "image_url": image_url,
                         "price_per_night": float(price_info.get("rate", 0)),
                         "total_price": float(price_info.get("total", 0)),
                         "rating": float(item.get("rating", 0)),
