@@ -169,7 +169,15 @@ paths:
   /airbnb/listing/{listing_id}/image:
     get:
       summary: Get a listing image
-      description: Get a specific Airbnb listing with its image formatted for display in the GPT chat
+      description: |
+        Get a specific Airbnb listing with its image formatted for display in the GPT chat.
+        The markdown field contains a grid layout of images that should be displayed as is.
+        The grid layout follows these rules:
+        - 1 image: Single image display
+        - 2 images: Two images in a row
+        - 3 images: Three images in a row
+        - 4 images: 2x2 grid layout
+        IMPORTANT: Display the markdown field exactly as provided without modification to preserve the grid layout.
       operationId: getListingImage
       parameters:
         - name: listing_id
@@ -191,7 +199,11 @@ paths:
                     $ref: '#/components/schemas/AirbnbListing'
                   markdown:
                     type: string
-                    description: Markdown for displaying the image in the chat
+                    description: |
+                      Markdown for displaying the images in a grid layout.
+                      This field contains pre-formatted markdown that positions multiple images in a grid.
+                      Display this markdown exactly as provided to maintain the grid layout.
+                      Do not modify or split the markdown as it will break the grid layout.
                   image_url:
                     type: string
                     description: URL of the listing image
@@ -210,7 +222,15 @@ paths:
   /airbnb/listings/images:
     post:
       summary: Get multiple listing images
-      description: Get multiple Airbnb listings with their images formatted for display in the GPT chat
+      description: |
+        Get multiple Airbnb listings with their images formatted for display in the GPT chat.
+        The markdown field in each listing's response contains a grid layout of images that should be displayed as is.
+        The grid layout follows these rules:
+        - 1 image: Single image display
+        - 2 images: Two images in a row
+        - 3 images: Three images in a row
+        - 4 images: 2x2 grid layout
+        IMPORTANT: Display the markdown field exactly as provided without modification to preserve the grid layout.
       operationId: getListingsImages
       requestBody:
         required: true
@@ -235,7 +255,11 @@ paths:
                           $ref: '#/components/schemas/AirbnbListing'
                         markdown:
                           type: string
-                          description: Markdown for displaying the images in a grid layout
+                          description: |
+                            Markdown for displaying the images in a grid layout.
+                            This field contains pre-formatted markdown that positions multiple images in a grid.
+                            Display this markdown exactly as provided to maintain the grid layout.
+                            Do not modify or split the markdown as it will break the grid layout.
                         image_urls:
                           type: array
                           items:
