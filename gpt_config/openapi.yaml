@@ -170,14 +170,12 @@ paths:
     get:
       summary: Get a listing image
       description: |
-        Get a specific Airbnb listing with its image formatted for display in the GPT chat.
-        The markdown field contains a grid layout of images that should be displayed as is.
-        The grid layout follows these rules:
-        - 1 image: Single image display
-        - 2 images: Two images in a row
-        - 3 images: Three images in a row
-        - 4 images: 2x2 grid layout
-        IMPORTANT: Display the markdown field exactly as provided without modification to preserve the grid layout.
+        Get a listing with its images in a grid layout. Display rules:
+        1 image: Single display
+        2 images: Row of two
+        3 images: Row of three
+        4 images: 2x2 grid
+        Note: Display markdown exactly as provided.
       operationId: getListingImage
       parameters:
         - name: listing_id
@@ -223,14 +221,12 @@ paths:
     post:
       summary: Get multiple listing images
       description: |
-        Get multiple Airbnb listings with their images formatted for display in the GPT chat.
-        The markdown field in each listing's response contains a grid layout of images that should be displayed as is.
-        The grid layout follows these rules:
-        - 1 image: Single image display
-        - 2 images: Two images in a row
-        - 3 images: Three images in a row
-        - 4 images: 2x2 grid layout
-        IMPORTANT: Display the markdown field exactly as provided without modification to preserve the grid layout.
+        Get listings with images in grid layouts. Display rules:
+        1 image: Single display
+        2 images: Row of two
+        3 images: Row of three
+        4 images: 2x2 grid
+        Note: Display markdown exactly as provided.
       operationId: getListingsImages
       requestBody:
         required: true
