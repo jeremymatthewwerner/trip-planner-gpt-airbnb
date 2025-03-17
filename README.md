@@ -1,6 +1,6 @@
-# Trip Planner GPT with Airbnb Integration
+Vacation Rental Trip Planner
 
-A custom OpenAI GPT that helps users plan trips with personalized itineraries and Airbnb accommodation recommendations.
+A custom OpenAI GPT that helps users plan trips with personalized itineraries and accommodation recommendations.
 
 ## Try It Out
 
@@ -17,7 +17,7 @@ You can try the Vacation Rental Trip Planner GPT here:
 This project consists of:
 
 1. **API Backend**: A FastAPI application that provides endpoints for:
-   - Searching Airbnb listings (using RapidAPI)
+   - Searching listings (using RapidAPI)
    - Finding attractions at destinations
    - Creating personalized trip itineraries
 
@@ -32,10 +32,10 @@ This project consists of:
 ## Features
 
 - **Personalized Trip Planning**: Create custom itineraries based on user preferences and travel dates
-- **Airbnb Integration**: Search for accommodations with filters for dates, location, price, and room type
+- **Integration**: Search for accommodations with filters for dates, location, price, and room type
 - **Attraction Recommendations**: Discover popular attractions and activities at your destination
-- **Visual Listings**: Display Airbnb listing images directly in the chat for a more engaging experience
-- **Smart URL Generation**: Airbnb listing links include date and guest parameters for a seamless booking experience
+- **Visual Listings**: Display listing images directly in the chat for a more engaging experience
+- **Smart URL Generation**: listing links include date and guest parameters for a seamless booking experience
 
 ## Setup Instructions
 
@@ -43,7 +43,7 @@ This project consists of:
 
 - Python 3.8+
 - OpenAI API key
-- RapidAPI key (for Airbnb data)
+- RapidAPI key (for listing data)
 
 ### Installation
 
@@ -268,13 +268,13 @@ For more details, see the [automation README](automation/README.md).
 2. **Create a New GPT**:
    - Click "Create a GPT"
    - In the configuration panel:
-     - **Name**: "Trip Planner with Airbnb"
-     - **Description**: "A specialized GPT that helps you plan trips using Airbnb listings and local attractions."
+     - **Name**: "Vacation Rental Trip Planner"
+     - **Description**: "A specialized GPT that helps you plan trips using listings and local attractions."
      - **Instructions**: Copy the content from `gpt_config/config.json` (the "instructions" field)
      - **Conversation starters**: Add example prompts (see below)
 
 3. **Configure Capabilities**:
-   - Enable "Web Browsing" (for searching Airbnb.com when needed)
+   - Enable "Web Browsing" (for searching when needed)
    - Enable "DALL-E Image Generation" (for generating images of destinations)
 
 4. **Add Actions (API Integration)**:
@@ -296,7 +296,7 @@ For more details, see the [automation README](automation/README.md).
 ## Example Prompts
 
 - "Plan a 5-day trip to Paris for 2 adults with a budget of $2000"
-- "Find Airbnb options in Tokyo for next month"
+- "Find options in Tokyo for next month"
 - "What are the must-see attractions in Barcelona?"
 - "Create an itinerary for my honeymoon in Bali"
 - "I want to visit New York in December. What should I pack?"
